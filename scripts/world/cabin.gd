@@ -1,47 +1,62 @@
 extends StaticBody2D
-## Two-room cabin with one door (south wall, east room) and a locker in the west
-## room. Origin = top-left corner. Walls block movement and LOS; the inner wall
-## has an open doorway.
+## Two-room cabin (origin = top-left corner):
+##   west = bedroom (locker, bed), east = living room (table, chairs, crate, radio, bottle).
+## Front door in the south wall of the east room, inner door between the rooms,
+## a vaultable window in the west wall of the bedroom (the "other side").
 
 const DOOR_SCENE := preload("res://scenes/world/door.tscn")
 const LOCKER_SCENE := preload("res://scenes/world/locker.tscn")
+const WINDOW_SCENE := preload("res://scenes/world/window.tscn")
 
 @export var size_gu := Vector2(8, 6)
 @export var wall_gu := 0.3
 @export var inner_wall_x_gu := 4.0
-@export var inner_gap_gu := Vector2(2.4, 3.6)   # y range of the inner doorway
+@export var inner_door_y_gu := 3.0
 @export var door_center_x_gu := 6.2
-@export var door_width_gu := 1.2
-@export var locker_pos_gu := Vector2(1.4, 0.65)
+@export var opening_gu := 1.2
+@export var window_y_gu := 3.0
+@export var locker_pos_gu := Vector2(1.2, 0.65)
 
 var _wall_rects: Array[Rect2] = []
 
 
 func _ready() -> void:
 	add_to_group(&"navigation_source")
+	add_to_group(&"cabin")
 	collision_layer = GameParams.L_WORLD
 	collision_mask = 0
 	var W := size_gu.x
 	var H := size_gu.y
 	var t := wall_gu
-	var dl := door_center_x_gu - door_width_gu * 0.5
-	var dr := door_center_x_gu + door_width_gu * 0.5
+	var o := opening_gu * 0.5
+	var dl := door_center_x_gu - o
+	var dr := door_center_x_gu + o
 	var ix := inner_wall_x_gu - t * 0.5
-	_wall(Rect2(0, 0, W, t))                            # north
-	_wall(Rect2(0, 0, t, H))                            # west
-	_wall(Rect2(W - t, 0, t, H))                        # east
-	_wall(Rect2(0, H - t, dl, t))                       # south, left of door
-	_wall(Rect2(dr, H - t, W - dr, t))                  # south, right of door
-	_wall(Rect2(ix, t, t, inner_gap_gu.x - t))          # inner, above doorway
-	_wall(Rect2(ix, inner_gap_gu.y, t, H - t - inner_gap_gu.y))  # inner, below
-	var door := DOOR_SCENE.instantiate()
-	door.width_gu = door_width_gu
-	door.thickness_gu = t
-	door.position = Vector2(door_center_x_gu, H - t * 0.5) * GameParams.PX_PER_GU
-	add_child(door)
-	var locker := LOCKER_SCENE.instantiate()
-	locker.position = locker_pos_gu * GameParams.PX_PER_GU
-	add_child(locker)
+	_wall(Rect2(0, 0, W, t))                                         # north
+	_wall(Rect2(0, 0, t, window_y_gu - o))                           # west, above window
+	_wall(Rect2(0, window_y_gu + o, t, H - window_y_gu - o))         # west, below window
+	_wall(Rect2(W - t, 0, t, H))                                     # east
+	_wall(Rect2(0, H - t, dl, t))                                    # south, left of door
+	_wall(Rect2(dr, H - t, W - dr, t))                               # south, right of door
+	_wall(Rect2(ix, t, t, inner_door_y_gu - o - t))                  # inner, above door
+	_wall(Rect2(ix, inner_door_y_gu + o, t, H - t - inner_door_y_gu - o))  # inner, below door
+	_add(DOOR_SCENE, Vector2(door_center_x_gu, H - t * 0.5), 0.0, &"FrontDoor")
+	_add(DOOR_SCENE, Vector2(inner_wall_x_gu, inner_door_y_gu), PI * 0.5, &"InnerDoor")
+	_add(WINDOW_SCENE, Vector2(t * 0.5, window_y_gu), PI * 0.5, &"Window")
+	_add(LOCKER_SCENE, locker_pos_gu, 0.0, &"Locker")
+
+
+func _add(scene: PackedScene, pos_gu: Vector2, rot: float, node_name: StringName) -> Node2D:
+	var n: Node2D = scene.instantiate()
+	n.name = node_name
+	if "width_gu" in n:
+		n.width_gu = opening_gu
+	if "thickness_gu" in n:
+		n.thickness_gu = wall_gu
+	n.position = pos_gu * GameParams.PX_PER_GU
+	n.rotation = rot
+	add_child(n)
+	return n
 
 
 func _wall(r_gu: Rect2) -> void:
@@ -53,6 +68,24 @@ func _wall(r_gu: Rect2) -> void:
 	cs.shape = s
 	cs.position = r.get_center()
 	add_child(cs)
+
+
+func get_wall_rects() -> Array[Rect2]:
+	return _wall_rects
+
+
+## Room rectangles in world px (for "seen in the same room" decisions).
+func get_room_rects() -> Array[Rect2]:
+	var g := GameParams.PX_PER_GU
+	var ix := inner_wall_x_gu
+	return [
+		Rect2(global_position, Vector2(ix, size_gu.y) * g),
+		Rect2(global_position + Vector2(ix, 0) * g, Vector2(size_gu.x - ix, size_gu.y) * g),
+	]
+
+
+func get_bounds() -> Rect2:
+	return Rect2(global_position, size_gu * GameParams.PX_PER_GU)
 
 
 func _draw() -> void:

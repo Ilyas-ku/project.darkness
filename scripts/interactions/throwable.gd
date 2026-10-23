@@ -17,6 +17,7 @@ var _thrower_id := 0
 func _ready() -> void:
 	add_to_group(&"interactable")
 	add_to_group(&"dynamic_object")
+	add_to_group(&"stone")
 	z_index = 5
 
 

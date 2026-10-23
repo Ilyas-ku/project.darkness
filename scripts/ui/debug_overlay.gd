@@ -34,7 +34,9 @@ func _process(_delta: float) -> void:
 	lines.append("DEBUG (F3)   seed=%d   FPS=%d" % [session.seed_used, Engine.get_frames_per_second()])
 	lines.append("phase=%s  prepare=%.1f  t=%.1f" % [GameSession.Phase.keys()[session.phase], session.prepare_left, session.active_time])
 	var sv: SurvivorController = session.survivor
-	lines.append("survivor mode=%s stamina=%.2f concealed=%s locker=%s" % [sv.movement_mode, sv.stamina.value, sv.is_concealed(), sv.current_locker != null])
+	lines.append("survivor mode=%s stamina=%.2f concealed=%s locker=%s health=%s" % [sv.movement_mode, sv.stamina.value, sv.is_concealed(), sv.current_locker != null, sv.health.state_name()])
+	for t in sv.health.transitions:
+		lines.append("  health " + t)
 	var k: KillerMotor = session.killer
 	if k == null:
 		lines.append("killer: absent (PREPARE)")
@@ -43,6 +45,11 @@ func _process(_delta: float) -> void:
 		lines.append("FSM=%s (%.1fs)  visual=%s" % [info.state, info.state_time, info.has_visual])
 		lines.append("last_seen=%s @%.1f" % [str((info.last_seen / GameParams.PX_PER_GU).snapped(Vector2(0.1, 0.1))) if info.has_last_seen else "-", info.last_seen_time])
 		lines.append("observations=%d heard=%d ignored_sounds=%d" % [info.observations, info.heard, info.ignored_sounds])
+		lines.append("plan: %s   house due in %.0fs" % [info.plan, info.house_due_in])
+		var h: Dictionary = info.house
+		lines.append("house: visits=%d entries=%d rooms_swept=%d hiding checks=%d skipped=%d found=%d" % [h.visits, h.entries, h.rooms_swept, h.hiding_checks, h.hiding_skipped, h.hiding_found])
+		var c: Dictionary = info.combat
+		lines.append("combat: attacks_started=%d attacks_hit=%d attacks_whiffed=%d %s finishes=%d interrupted=%d" % [c.attacks_started, c.attacks_hit, c.attacks_whiffed, str(c.whiff_reasons), c.finishes, c.finish_interrupted])
 		lines.append("transitions:")
 		for l in info.log:
 			lines.append("  " + l)
@@ -80,6 +87,9 @@ func _draw() -> void:
 		draw_arc(info.investigate_region.center, info.investigate_region.radius, 0, TAU, 32, Color(0.3, 0.7, 1, 0.9), 1.5)
 	if info.search_center != null:
 		draw_arc(info.search_center, info.search_radius, 0, TAU, 32, Color(1, 0.5, 1, 0.8), 1.5)
+	if info.plan_target != null:
+		draw_circle(info.plan_target, 4, Color(1, 0.6, 0.1, 0.9))
+		draw_string(ThemeDB.fallback_font, info.plan_target + Vector2(6, 10), "waypoint", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1, 0.7, 0.3))
 	var path: PackedVector2Array = k.get_current_path()
 	if path.size() >= 2:
 		draw_polyline(path, Color(0.4, 1, 1, 0.8), 1.5)

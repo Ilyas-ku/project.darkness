@@ -1,12 +1,16 @@
 class_name SurvivorController
 extends CharacterBody2D
 ## Player-controlled survivor: WASD movement, mouse look, sprint/careful gaits,
-## contextual E interactions (timed), stone throwing, locker hiding and peeking.
+## contextual E interactions (timed; some must be held), stone throwing, locker
+## hiding and peeking, window vaulting, wounds with blood traces.
+
+signal hurt
 
 const MODE_IDLE := &"idle"
 const MODE_WALK := &"walk"
 const MODE_SPRINT := &"sprint"
 const MODE_CAREFUL := &"careful"
+const BLOOD_SCENE := preload("res://scenes/world/blood_decal.tscn")
 
 @onready var vision: VisionSensor = $VisionSensor
 @onready var hearing: HearingSensor = $HearingSensor
@@ -27,9 +31,11 @@ var _shape: CollisionShape2D
 var _bush_overlaps := 0
 var _step_timer := 0.0
 var _peek_hold := 0.0
-## Active timed interaction: {target: Node, left: float, total: float}
+var _blood_timer := 0.0
+## Active timed interaction: {target, left, total, hold, from?, to?}
 var _channel := {}
-## Optional input override for automated tests: {move: Vector2, sprint: bool, careful: bool, aim: Vector2}
+## Optional input override for automated tests:
+## {move: Vector2, sprint: bool, careful: bool, aim: Vector2, peek: bool, interact_held: bool}
 var scripted_input: Variant = null
 
 
@@ -56,6 +62,7 @@ func _ready() -> void:
 	var vw := float(ProjectSettings.get_setting("display/window/size/viewport_width", 1152))
 	var z := vw / GameParams.gu(params.camera_view_width_gu)
 	camera.zoom = Vector2(z, z)
+	health.state_changed.connect(_on_health_changed)
 
 
 # --- Perception interface (read by VisionSensor of others) -------------------
@@ -72,6 +79,14 @@ func get_perception_points() -> PackedVector2Array:
 
 func is_concealed() -> bool:
 	return current_locker == null and _bush_overlaps > 0
+
+
+func is_peeking_from_hiding() -> bool:
+	return current_locker != null
+
+
+func is_downed() -> bool:
+	return health.is_down()
 
 
 func get_eye_position() -> Vector2:
@@ -143,23 +158,25 @@ func _read_input() -> Dictionary:
 		"careful": Input.is_action_pressed(&"careful"),
 		"aim": get_global_mouse_position(),
 		"peek": Input.is_action_pressed(&"peek"),
+		"interact_held": Input.is_action_pressed(&"interact"),
 	}
 
 
 func _physics_process(delta: float) -> void:
 	movement_mode = MODE_IDLE
-	if not input_enabled:
+	if not input_enabled or health.is_down():
 		velocity = Vector2.ZERO
 		stamina.update(delta, false)
+		focus = null
 		return
 	var inp := _read_input()
-	if current_locker == null:
+	if current_locker == null and _channel.get("to") == null:
 		var aim: Vector2 = inp.get("aim", global_position + facing)
 		if aim.distance_squared_to(global_position) > 1.0:
 			facing = (aim - global_position).normalized()
 	if not _channel.is_empty():
 		stamina.update(delta, false)
-		_process_channel(delta)
+		_process_channel(delta, inp.get("interact_held", true))
 		return
 	if current_locker != null:
 		stamina.update(delta, false)
@@ -180,6 +197,11 @@ func _physics_process(delta: float) -> void:
 		if _step_timer <= 0.0:
 			SoundEventBus.emit(&"footsteps", global_position, footstep_radius(movement_mode, params), get_instance_id())
 			_step_timer = footstep_interval(movement_mode, params)
+		if health.state == HealthComponent.HState.WOUNDED:
+			_blood_timer -= delta
+			if _blood_timer <= 0.0:
+				_drop_blood()
+				_blood_timer = params.blood_interval
 	else:
 		movement_mode = MODE_IDLE
 		_step_timer = 0.0
@@ -187,7 +209,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not input_enabled or scripted_input != null:
+	if not input_enabled or scripted_input != null or health.is_down():
 		return
 	if event.is_action_pressed(&"interact"):
 		try_interact()
@@ -197,32 +219,75 @@ func _unhandled_input(event: InputEvent) -> void:
 		inventory.select(0)
 	elif event.is_action_pressed(&"slot_2"):
 		inventory.select(1)
+	elif event is InputEventMouseButton and event.pressed and (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		inventory.select((inventory.selected + 1) % inventory.slots.size())
 
 
 # --- Interactions ------------------------------------------------------------
 
 func try_interact() -> bool:
-	if not _channel.is_empty():
+	if not _channel.is_empty() or health.is_down():
 		return false
 	var target: Node = current_locker if current_locker != null else focus
 	if target == null or not target.can_interact(self):
 		return false
-	_channel = {"target": target, "left": target.get_interact_duration(self), "total": target.get_interact_duration(self)}
+	if target.has_method(&"can_start") and not target.can_start(self):
+		return false
+	var d: float = target.get_interact_duration(self)
+	_channel = {"target": target, "left": d, "total": d, "hold": target.has_method(&"requires_hold") and target.requires_hold()}
+	if target.is_in_group(&"window"):
+		var plan: Dictionary = target.plan_vault(self, GameParams.gu(params.survivor_radius))
+		_channel["from"] = global_position
+		_channel["to"] = plan.to
+		_shape.set_deferred(&"disabled", true)
+	if target.has_method(&"on_channel_started"):
+		target.on_channel_started(self)
 	if current_locker != null:
 		current_locker.set_peeking(false)
 		_peek_hold = 0.0
 	return true
 
 
-func _process_channel(delta: float) -> void:
+func _process_channel(delta: float, held: bool) -> void:
 	velocity = Vector2.ZERO
+	var target: Node = _channel.target
+	if _channel.hold and not held:
+		cancel_channel("released E")
+		return
 	_channel.left -= delta
+	if _channel.has("to"):
+		var k := 1.0 - clampf(_channel.left / _channel.total, 0.0, 1.0)
+		global_position = _channel.from.lerp(_channel.to, k)
 	if _channel.left > 0.0:
 		return
-	var target: Node = _channel.target
+	var ch := _channel
 	_channel = {}
+	if ch.has("to"):
+		global_position = ch.to
+		_shape.set_deferred(&"disabled", false)
+		if is_instance_valid(target):
+			target.on_vaulted(self)
+		return
 	if is_instance_valid(target) and target.can_interact(self):
 		target.interact(self)
+
+
+## Interrupts the current timed action (release, hit, ...). Progress is lost.
+func cancel_channel(reason: String) -> void:
+	if _channel.is_empty():
+		return
+	var ch := _channel
+	_channel = {}
+	if ch.has("to"):
+		# An interrupted vault returns the survivor to the side it started from.
+		global_position = ch.from
+		_shape.set_deferred(&"disabled", false)
+	if is_instance_valid(ch.target) and ch.target.has_method(&"on_channel_cancelled"):
+		ch.target.on_channel_cancelled(self, reason)
+
+
+func get_channel_target() -> Node:
+	return _channel.get("target", null)
 
 
 func get_channel_progress() -> float:
@@ -232,7 +297,7 @@ func get_channel_progress() -> float:
 
 
 func get_focus_hint() -> String:
-	if not _channel.is_empty():
+	if not _channel.is_empty() or health.is_down():
 		return ""
 	var target: Node = current_locker if current_locker != null else focus
 	if target == null or not is_instance_valid(target):
@@ -240,14 +305,35 @@ func get_focus_hint() -> String:
 	return target.get_interact_hint(self)
 
 
+func start_vault(_window: Node) -> void:
+	pass  # vaulting is handled as a channel with motion (see try_interact)
+
+
 func try_throw(target_point: Vector2) -> bool:
-	if current_locker != null or not _channel.is_empty() or not input_enabled:
+	if current_locker != null or not _channel.is_empty() or not input_enabled or health.is_down():
 		return false
 	var item: Node = inventory.take_selected()
 	if item == null:
 		return false
 	item.throw_from(global_position, target_point, get_instance_id())
 	return true
+
+
+# --- Health ------------------------------------------------------------------
+
+func _on_health_changed(_old: int, new_state: int) -> void:
+	cancel_channel("hit")
+	hurt.emit()
+	_drop_blood()
+	_blood_timer = params.blood_interval
+	if new_state == HealthComponent.HState.DOWNED or new_state == HealthComponent.HState.DEAD:
+		velocity = Vector2.ZERO
+
+
+func _drop_blood() -> void:
+	var b: Node2D = BLOOD_SCENE.instantiate()
+	b.position = global_position
+	get_parent().add_child(b)
 
 
 # --- Locker ------------------------------------------------------------------

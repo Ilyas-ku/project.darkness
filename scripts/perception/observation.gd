@@ -9,10 +9,16 @@ extends RefCounted
 class ObservedVictim:
 	var last_seen_position: Vector2
 	var seen_at: float
+	## Visible posture (lying on the ground) — observable, not hidden state.
+	var is_downed := false
+	## Seen as a face in a hiding-spot slit (observable).
+	var is_peeking := false
 
-	func _init(pos: Vector2 = Vector2.ZERO, t: float = 0.0) -> void:
+	func _init(pos: Vector2 = Vector2.ZERO, t: float = 0.0, downed: bool = false, peeking: bool = false) -> void:
 		last_seen_position = pos
 		seen_at = t
+		is_downed = downed
+		is_peeking = peeking
 
 
 ## Produced by HearingSensor.
@@ -46,8 +52,13 @@ class HeardObservation:
 		return d
 
 
-## Static traces found in the world (blood, etc.). Not produced in the first prototype.
+## Static traces actually seen in the world (blood).
 class WorldEvidence:
 	var kind: StringName
 	var observed_at: Vector2
 	var seen_at: float
+
+	func _init(k: StringName = &"", pos: Vector2 = Vector2.ZERO, t: float = 0.0) -> void:
+		kind = k
+		observed_at = pos
+		seen_at = t

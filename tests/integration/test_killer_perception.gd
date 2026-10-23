@@ -74,7 +74,7 @@ func test_seen_then_behind_wall_goes_last_seen() -> void:
 	check(seen_pos.distance_to(g(8, 12)) < 1.0, "last seen updated while visible")
 	target.global_position = g(12, 12)   # hidden behind the wall
 	await physics_frames(2)
-	check(st() == "LAST_SEEN" or st() == "SEARCH", "LOS lost -> LAST_SEEN/SEARCH (got %s)" % st())
+	check(st() == "GO_TO_LAST_SEEN" or st() == "LOCAL_SEARCH", "LOS lost -> GO_TO_LAST_SEEN/LOCAL_SEARCH (got %s)" % st())
 	for i in 20:
 		target.global_position = g(12, 12 + i * 0.1)   # keeps moving while hidden
 		await physics_frames(2)
@@ -90,12 +90,12 @@ func test_long_search_returns_to_patrol() -> void:
 	var seen_search := false
 	for i in 30:
 		await seconds(1.0)
-		if st() == "SEARCH":
+		if st() == "LOCAL_SEARCH":
 			seen_search = true
-		if st() == "PATROL":
+		if seen_search and (st() == "PATROL" or st() == "TRAVEL_TO_POI" or st() == "SWEEP_INTERIOR"):
 			break
-	check(seen_search, "went through SEARCH")
-	check_eq(st(), "PATROL", "returns to PATROL after search without info (AC-06)")
+	check(seen_search, "went through LOCAL_SEARCH")
+	check(st() == "PATROL" or st() == "TRAVEL_TO_POI" or st() == "SWEEP_INTERIOR", "returns to patrol after search without info (AC-06), got %s" % st())
 
 
 func test_sound_does_not_break_visible_chase() -> void:
@@ -111,11 +111,11 @@ func test_sound_does_not_break_visible_chase() -> void:
 
 func test_impact_triggers_investigate_region() -> void:
 	await physics_frames(5)
-	check_eq(st(), "PATROL", "patrolling")
+	check(st() == "TRAVEL_TO_POI" or st() == "SWEEP_INTERIOR", "patrolling (got %s)" % st())
 	var src := g(7, 18)
 	SoundEventBus.instance().emit_sound(&"impact", src, 9.0, 0)
 	await physics_frames(2)
-	check_eq(st(), "INVESTIGATE", "impact -> INVESTIGATE")
+	check_eq(st(), "INVESTIGATE_SOUND", "impact -> INVESTIGATE_SOUND")
 	var reg: Variant = killer.brain.investigate_region
 	check(reg != null and reg.center.distance_to(src) <= reg.radius, "approximate region contains the impact point")
 
@@ -125,6 +125,6 @@ func test_footsteps_only_local_check() -> void:
 	var before := killer.global_position
 	SoundEventBus.instance().emit_sound(&"footsteps", killer.global_position + g(1.5, 1.5), 3.0, 12345)
 	await physics_frames(2)
-	check_eq(st(), "SEARCH", "footsteps -> cautious local SEARCH")
+	check_eq(st(), "LOCAL_SEARCH", "footsteps -> cautious LOCAL_SEARCH")
 	check(killer.brain.search_center.distance_to(before) < GameParams.gu(0.5), "search centred on the killer, not on the source")
 	check(not killer.brain.memory.has_last_seen, "no position learned from footsteps")

@@ -60,8 +60,9 @@ func test_caught() -> void:
 	s.killer.global_position = sv.global_position + Vector2(GameParams.gu(0.5), 0)
 	s.killer.facing = Vector2.LEFT
 	sv.scripted_input = {"move": Vector2.ZERO, "aim": sv.global_position + Vector2.RIGHT}
-	await seconds(1.0)
-	check_eq(s.phase, GameSession.Phase.CAUGHT, "CAUGHT after MVP attack (AC-17)")
+	await seconds(6.0)
+	check_eq(sv.health.hits, 2, "two confirmed hits: wound, down")
+	check_eq(s.phase, GameSession.Phase.CAUGHT, "CAUGHT after finisher (AC-17)")
 	check_eq(s.hud.get_result_title(), "CAUGHT", "result screen shows CAUGHT")
 
 

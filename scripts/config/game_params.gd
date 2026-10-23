@@ -12,10 +12,16 @@ const L_WORLD := 1        # trunks, walls, map bounds, shed
 const L_DOOR := 2         # closed doors
 const L_SURVIVOR := 4
 const L_KILLER := 8
-const L_FURNITURE := 16   # lockers
+const L_FURNITURE := 16   # tall furniture: lockers, crate (blocks LOS)
 const L_BUSH := 32        # bush areas
+const L_WINDOW := 64      # window frames: block walking, not sight; vaulted with E
+const L_LOW_FURNITURE := 128  # bed, table, chairs: block walking, not sight
 const LOS_MASK := L_WORLD | L_DOOR | L_FURNITURE
-const MOVE_MASK := L_WORLD | L_DOOR | L_FURNITURE
+const MOVE_MASK := L_WORLD | L_DOOR | L_FURNITURE | L_WINDOW | L_LOW_FURNITURE
+## What a thrown item collides with (passes through open window frames).
+const THROW_MASK := L_WORLD | L_DOOR | L_FURNITURE | L_LOW_FURNITURE
+## Static geometry baked into the killer's navigation (doors and windows are passages).
+const NAV_MASK := L_WORLD | L_FURNITURE | L_LOW_FURNITURE
 
 static var _current: GameParams
 
@@ -61,6 +67,7 @@ static var _current: GameParams
 @export_group("Fog of war")
 @export var fog_cell_size := 0.5
 @export var fog_update_hz := 15.0
+@export var night_tint := Color(0.55, 0.6, 0.78)
 @export var fog_explored_alpha := 0.55
 
 @export_group("Sound")
@@ -79,7 +86,9 @@ static var _current: GameParams
 @export var approx_region_radius := 2.0
 ## Max offset of the reported region centre from the true source, as a fraction of the radius.
 @export var approx_region_offset_ratio := 0.75
-@export var hud_footsteps_hold := 0.4
+@export var hud_footsteps_hold := 0.75
+## Footstep audibility multiplier when walls block the line between source and listener (1 = walls do not muffle).
+@export var footsteps_wall_attenuation := 1.0
 
 @export_group("AI")
 @export var patrol_wait := 0.6
@@ -99,13 +108,53 @@ static var _current: GameParams
 @export var repath_interval := 0.25
 @export var stuck_time := 0.9
 
-@export_group("Attack")
-@export var attack_range := 0.65
-@export var attack_telegraph := 0.35
-@export var attack_cooldown := 1.2
-@export var hits_to_down := 1
+@export_group("Combat")
+## Centre-to-centre distance at which the killer starts an attack.
+@export var attack_start_range := 1.1
+## Reach checked during the active window (start range + collider slack).
+@export var attack_hit_range := 1.3
+## Half-angle of the hit arc in front of the killer.
+@export var attack_hit_half_arc_deg := 75.0
+@export var attack_windup := 0.30
+@export var attack_active := 0.15
+@export var attack_recovery := 1.0
+@export var finish_time := 2.5
+@export var finish_range := 1.0
+@export var blood_interval := 0.7
+@export var blood_lifetime := 60.0
+@export var evidence_fresh_time := 20.0
+
+@export_group("House patrol")
+## The house is visited at least once per a random interval in this range (s).
+@export var house_visit_interval := Vector2(60, 120)
+@export var sweep_look_time := 1.5
+## Chance to open a hiding spot on a routine visit: base + seconds_since_last_check / ramp.
+## Depends only on time, never on whether the spot is occupied.
+@export var hiding_check_base := 0.25
+@export var hiding_check_ramp := 180.0
+@export var hiding_check_max := 0.9
+## Chance when the victim was last seen in the same room.
+@export var hiding_check_after_sighting := 0.9
+@export var poi_jitter := 15.0
+
+@export_group("Exit")
+@export var exit_hold_time := 5.0
+@export var exit_interaction_distance := 1.2
+@export var exit_unlocked_in_test_scene := true
+## Future full mode: exits open only at sunrise. Not used by the test scene.
+@export var exit_requires_sunrise := false
 
 @export_group("Interaction")
+@export var window_vault_time := 1.2
+@export var furniture_move_time := 1.5
+@export var furniture_push_distance := 1.0
+@export var furniture_move_radius := 4.0
+@export var bottle_impact_radius := 11.0
+@export var window_sound_radius := 4.0
+@export var radio_radius := 7.0
+@export var radio_interval := 1.5
+@export var stone_slide_distance := 0.5
+@export var stone_rest_speed := 0.2
 @export var interact_range := 1.2
 @export var stone_pickup_time := 0.4
 @export var door_toggle_time := 0.3

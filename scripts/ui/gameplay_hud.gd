@@ -8,6 +8,7 @@ var session: Node
 var _timer_label: Label
 var _stamina_bar: ProgressBar
 var _inventory_label: Label
+var _health_label: Label
 var _hint_label: Label
 var _progress: ProgressBar
 var _steps_label: Label
@@ -43,9 +44,11 @@ func _build() -> void:
 
 	var bottom := VBoxContainer.new()
 	bottom.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	bottom.position = Vector2(16, -96)
+	bottom.position = Vector2(16, -120)
 	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(bottom)
+	_health_label = Label.new()
+	bottom.add_child(_health_label)
 	_inventory_label = Label.new()
 	bottom.add_child(_inventory_label)
 	var st := Label.new()
@@ -179,6 +182,8 @@ func _process(delta: float) -> void:
 	_steps_label.modulate.a = 1.0 if _steps_left > 0.0 else 0.0
 	var sv: SurvivorController = session.survivor
 	_stamina_bar.value = sv.stamina.value
+	_health_label.text = "Здоровье: " + ["здоров", "ранен", "повален", "мёртв"][sv.health.state]
+	_health_label.modulate = [Color.WHITE, Color(1, 0.6, 0.5), Color(1, 0.3, 0.3), Color(1, 0.2, 0.2)][sv.health.state]
 	_stamina_bar.modulate = Color(1, 0.5, 0.4) if sv.stamina.is_exhausted() else Color.WHITE
 	if session.phase == GameSession.Phase.PREPARE:
 		_timer_label.text = "Подготовка: %d" % ceili(session.prepare_left)

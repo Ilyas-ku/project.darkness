@@ -41,7 +41,7 @@ func _ready() -> void:
 	fog.setup(params.map_size_px(), GameParams.gu(params.fog_cell_size), params.fog_explored_alpha)
 	perception.setup(survivor, fog)
 	exit_zone.survivor_reached.connect(_on_exit_reached)
-	survivor.health.downed.connect(_on_survivor_downed)
+	survivor.health.died.connect(_on_survivor_died)
 	survivor.hearing.heard.connect(_on_survivor_heard)
 	hud.setup(self)
 	debug_overlay.setup(self)
@@ -124,7 +124,7 @@ func _on_exit_reached() -> void:
 		_finish(Phase.ESCAPED)
 
 
-func _on_survivor_downed() -> void:
+func _on_survivor_died() -> void:
 	if phase == Phase.ACTIVE:
 		_finish(Phase.CAUGHT)
 

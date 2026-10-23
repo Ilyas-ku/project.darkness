@@ -119,7 +119,24 @@ func scan_group(group: StringName, dt: float) -> Observation.ObservedVictim:
 	for t in get_tree().get_nodes_in_group(group):
 		if check_target(t, dt):
 			var pts: PackedVector2Array = t.get_perception_points()
-			return Observation.ObservedVictim.new(pts[0], GameClock.now())
+			var downed: bool = t.has_method(&"is_downed") and t.is_downed()
+			var peeking: bool = t.has_method(&"is_peeking_from_hiding") and t.is_peeking_from_hiding()
+			return Observation.ObservedVictim.new(pts[0], GameClock.now(), downed, peeking)
+	return null
+
+
+## Evidence (blood) currently in view, newer than `newer_than`. Returns WorldEvidence or null.
+func scan_evidence(newer_than: float, max_age: float, seen: Dictionary) -> Observation.WorldEvidence:
+	if not enabled:
+		return null
+	var now := GameClock.now()
+	for e in get_tree().get_nodes_in_group(&"evidence"):
+		var id := e.get_instance_id()
+		if seen.has(id) or e.created_at <= newer_than or now - e.created_at > max_age:
+			continue
+		if can_see_point(e.global_position):
+			seen[id] = true
+			return Observation.WorldEvidence.new(&"blood", e.global_position, now)
 	return null
 
 

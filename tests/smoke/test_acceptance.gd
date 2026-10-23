@@ -56,21 +56,21 @@ func test_locker_hides_and_peek_exposes() -> void:
 func test_footsteps_behind_wall_presence_only() -> void:
 	s.spawn_killer()
 	_freeze_killer_brain()
-	# Survivor inside the west room looking at the north wall; killer walks outside along the west wall.
-	_still(g(3.0, 5.0), g(3.0, 2.0))
-	s.killer.global_position = g(1.0, 4.0)
-	s.killer.move_to(g(1.0, 9.0))
+	# Survivor inside the bedroom looking at the north wall; killer walks outside along the north wall.
+	_still(g(5.0, 3.0), g(5.0, 1.0))
+	s.killer.global_position = g(3.5, 1.0)
+	s.killer.move_to(g(9.0, 1.0))
 	await seconds(0.6)
 	check(not s.perception.killer_perceived, "killer not in LOS")
 	check(not s.killer.visual.visible, "killer not drawn")
 	check(s.hud.is_footsteps_visible(), "footstep indicator shown (AC-09)")
 	s.killer.stop()
-	await seconds(0.55)
-	check(not s.hud.is_footsteps_visible(), "indicator gone <= 0.5 s after the steps stop")
+	await seconds(0.8)
+	check(not s.hud.is_footsteps_visible(), "indicator gone <= 0.75 s after the steps stop")
 
 
 func test_door_change_unseen_is_not_shown() -> void:
-	var door: Node = tree.get_nodes_in_group(&"door")[0]
+	var door: Node = tree.get_first_node_in_group(&"cabin").get_node("FrontDoor")
 	_still(g(20, 18), g(25, 18))   # far away, looking away
 	await physics_frames(3)
 	check(not door.is_open() and not door.displayed_open, "door closed initially")
@@ -87,7 +87,7 @@ func test_stone_out_of_view_not_revealed() -> void:
 	var sv := s.survivor
 	_still(g(15, 13), g(18, 13))
 	await physics_frames(3)
-	var stone: Throwable = tree.get_nodes_in_group(&"dynamic_object")[0]
+	var stone: Throwable = tree.get_nodes_in_group(&"stone")[0]
 	stone.interact(sv)
 	check(sv.inventory.count() == 1, "stone picked up")
 	sv.try_throw(g(9, 13))   # behind the survivor, outside the view sector
@@ -97,7 +97,7 @@ func test_stone_out_of_view_not_revealed() -> void:
 
 
 func test_explored_area_hides_dynamic_objects() -> void:
-	var stone: Throwable = tree.get_nodes_in_group(&"dynamic_object")[1]   # (15.5, 12)
+	var stone: Throwable = tree.get_nodes_in_group(&"stone")[1]   # (15.5, 12)
 	_still(g(13.5, 12), g(15.5, 12))
 	await physics_frames(6)
 	check(stone.visible, "stone visible in view")
@@ -127,8 +127,8 @@ func test_tree_and_stone_decoy() -> void:
 	check_eq(k.brain.state_name(), "CHASE", "killer sees the survivor")
 	_still(g(24.2, 12), g(24.2, 17))   # trunk at (22.5, 12) breaks LOS
 	await physics_frames(2)
-	check(k.brain.state_name() == "LAST_SEEN" or k.brain.state_name() == "SEARCH", "LOS broken by the trunk (AC-05)")
-	var stone: Throwable = tree.get_nodes_in_group(&"dynamic_object")[0]
+	check(k.brain.state_name() == "GO_TO_LAST_SEEN" or k.brain.state_name() == "LOCAL_SEARCH", "LOS broken by the trunk (AC-05)")
+	var stone: Throwable = tree.get_nodes_in_group(&"stone")[0]
 	stone.interact(sv)
 	sv.try_throw(g(24.2, 17))
 	var investigated := false
@@ -136,9 +136,9 @@ func test_tree_and_stone_decoy() -> void:
 		await physics_frames(1)
 		if stone.state == Throwable.State.LANDED:
 			await physics_frames(1)
-			investigated = k.brain.state_name() == "INVESTIGATE"
+			investigated = k.brain.state_name() == "INVESTIGATE_SOUND"
 			break
-	check(investigated, "impact pulls the killer to INVESTIGATE (AC-07), got %s" % k.brain.state_name())
+	check(investigated, "impact pulls the killer to INVESTIGATE_SOUND (AC-07), got %s" % k.brain.state_name())
 	var reg: Variant = k.brain.investigate_region
 	check(reg != null and reg.center.distance_to(g(24.2, 17)) <= reg.radius, "region around the stone")
 	check(reg != null and reg.center.distance_to(sv.global_position) > GameParams.gu(3.0), "region not at the hidden survivor")
@@ -150,7 +150,7 @@ func test_stone_into_shed_impacts_at_contact() -> void:
 	await physics_frames(2)
 	var events: Array = []
 	s.get_node("SoundEventBus").sound_emitted.connect(func(ev): if ev.kind == &"impact": events.append(ev))
-	var stone: Throwable = tree.get_nodes_in_group(&"dynamic_object")[0]
+	var stone: Throwable = tree.get_nodes_in_group(&"stone")[0]
 	stone.interact(sv)
 	sv.try_throw(g(19, 7.5))
 	await seconds(0.6)

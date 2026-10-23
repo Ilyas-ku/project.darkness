@@ -6,6 +6,8 @@ extends RefCounted
 
 var has_visual := false
 var visible_position := Vector2.ZERO
+var visible_downed := false
+var visible_peeking := false
 var has_last_seen := false
 var last_seen_position := Vector2.ZERO
 var last_seen_time := -INF
@@ -19,6 +21,11 @@ var ignored_sounds_count := 0
 
 var sound_recheck_cooldown := 4.0
 var same_area_radius_px := 96.0
+
+## Area id -> time of last completed visit; hiding spot id -> time of last check.
+var area_last_visit := {}
+var hiding_last_check := {}
+var seen_evidence := {}
 
 var _pending_sound: Observation.HeardObservation = null
 var _recent_sounds: Array = []   # [{kind, center, time}]
@@ -40,6 +47,8 @@ func ingest_vision(obs: Observation.ObservedVictim, now: float) -> void:
 	elif not has_visual:
 		last_seen_velocity = Vector2.ZERO
 	has_visual = true
+	visible_downed = obs.is_downed
+	visible_peeking = obs.is_peeking
 	visible_position = obs.last_seen_position
 	last_seen_position = obs.last_seen_position
 	last_seen_time = obs.seen_at
