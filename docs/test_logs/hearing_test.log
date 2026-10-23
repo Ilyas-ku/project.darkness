@@ -1,0 +1,18 @@
+[preset] TEST_FOOTSTEPS applied (seed 42)
+[footsteps] indicator ON: heard (d=2.4 gu, r=3.0 gu, walls=true)
+[hearing-test] killer at (9.5, 1.0), stopping 2 s
+[footsteps] indicator OFF: no audible steps for 0.75 s (last: out of hearing range)
+[hearing-test] killer at (17.0, 1.0), stopping 2 s
+[footsteps] indicator ON: heard (d=2.2 gu, r=3.0 gu, walls=true)
+[hearing-test] killer at (2.0, 1.0), stopping 2 s
+[footsteps] indicator OFF: no audible steps for 0.75 s (last: heard)
+[footsteps] indicator ON: heard (d=2.3 gu, r=3.0 gu, walls=true)
+[hearing-test] killer at (9.5, 1.0), stopping 2 s
+[footsteps] indicator OFF: no audible steps for 0.75 s (last: out of hearing range)
+[hearing-test] killer at (17.0, 1.0), stopping 2 s
+[footsteps] indicator ON: heard (d=2.2 gu, r=3.0 gu, walls=true)
+[hearing-test] killer at (2.0, 1.0), stopping 2 s
+[footsteps] indicator OFF: no audible steps for 0.75 s (last: heard)
+[footsteps] indicator ON: heard (d=2.3 gu, r=3.0 gu, walls=true)
+[hearing-test] killer at (9.5, 1.0), stopping 2 s
+[footsteps] indicator OFF: no audible steps for 0.75 s (last: out of hearing range)

@@ -1,0 +1,6 @@
+seed=1 flee=false result=CAUGHT t=4.7 health=["0.78s WOUNDED", "2.13s DOWNED", "4.67s DEAD"] combat={ "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 1, "finish_interrupted": 0 }
+seed=2 flee=false result=CAUGHT t=4.7 health=["0.78s WOUNDED", "2.13s DOWNED", "4.67s DEAD"] combat={ "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 1, "finish_interrupted": 0 }
+seed=3 flee=false result=CAUGHT t=4.7 health=["0.78s WOUNDED", "2.13s DOWNED", "4.67s DEAD"] combat={ "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 1, "finish_interrupted": 0 }
+seed=1 flee=true result=CAUGHT t=11.2 health=["7.35s WOUNDED", "8.68s DOWNED", "11.22s DEAD"] combat={ "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 1, "finish_interrupted": 0 }
+seed=2 flee=true result=CAUGHT t=11.2 health=["7.35s WOUNDED", "8.68s DOWNED", "11.22s DEAD"] combat={ "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 1, "finish_interrupted": 0 }
+seed=3 flee=true result=CAUGHT t=11.2 health=["7.35s WOUNDED", "8.68s DOWNED", "11.22s DEAD"] combat={ "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 1, "finish_interrupted": 0 }

@@ -10,17 +10,11 @@ const SHADER_CODE := """
 shader_type canvas_item;
 uniform sampler2D visible_mask : filter_linear;
 uniform float explored_alpha = 0.62;
-uniform vec2 mask_texel = vec2(0.001, 0.001);
 void fragment() {
 	float explored = texture(TEXTURE, UV).r;
-	// soft LOS edge: small blur of the visibility mask (geometry is unchanged)
-	float vis = 0.0;
-	for (int x = -1; x <= 1; x++) {
-		for (int y = -1; y <= 1; y++) {
-			vis += texture(visible_mask, UV + vec2(float(x), float(y)) * mask_texel * 1.5).r;
-		}
-	}
-	vis /= 9.0;
+	// soft LOS edge: the mask is rendered at half resolution and sampled linearly
+	// (visual smoothing only, the visibility geometry is unchanged)
+	float vis = texture(visible_mask, UV).r;
 	float a = mix(1.0, explored_alpha, explored);
 	a = mix(a, 0.0, smoothstep(0.15, 0.85, vis));
 	// remembered areas are tinted cold blue, unknown is black
@@ -28,6 +22,9 @@ void fragment() {
 	COLOR = vec4(col, a);
 }
 """
+
+## Resolution of the visibility mask relative to the map (linear sampling softens edges).
+const MASK_SCALE := 0.5
 
 var memory: ExplorationMemory
 
@@ -44,15 +41,16 @@ func setup(map_px: Vector2, cell_px: float, explored_alpha: float) -> void:
 	_img.fill(Color.BLACK)
 	_tex = ImageTexture.create_from_image(_img)
 	_viewport = SubViewport.new()
-	_viewport.size = Vector2i(map_px)
+	_viewport.size = Vector2i(map_px * MASK_SCALE)
 	_viewport.transparent_bg = false
 	_viewport.disable_3d = true
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	var bg := ColorRect.new()
 	bg.color = Color.BLACK
-	bg.size = map_px
+	bg.size = map_px * MASK_SCALE
 	_viewport.add_child(bg)
 	_mask = _MaskDraw.new()
+	_mask.scale = Vector2(MASK_SCALE, MASK_SCALE)
 	_viewport.add_child(_mask)
 	add_child(_viewport)
 	var sprite := Sprite2D.new()
@@ -66,7 +64,6 @@ func setup(map_px: Vector2, cell_px: float, explored_alpha: float) -> void:
 	mat.shader = sh
 	mat.set_shader_parameter(&"visible_mask", _viewport.get_texture())
 	mat.set_shader_parameter(&"explored_alpha", explored_alpha)
-	mat.set_shader_parameter(&"mask_texel", Vector2.ONE / map_px)
 	sprite.material = mat
 	add_child(sprite)
 

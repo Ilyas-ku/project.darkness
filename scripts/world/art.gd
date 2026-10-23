@@ -58,12 +58,18 @@ static func light_texture() -> Texture2D:
 	return _light
 
 
-static func point_light(parent: Node, color: Color, radius_gu: float, energy: float) -> PointLight2D:
-	var l := PointLight2D.new()
+## Local light pool: an additive radial glow (cheap on every renderer; a
+## PointLight2D in GL Compatibility re-draws everything it touches).
+static func point_light(parent: Node, color: Color, radius_gu: float, energy: float) -> Sprite2D:
+	var l := Sprite2D.new()
 	l.texture = light_texture()
-	l.color = color
-	l.energy = energy
-	l.texture_scale = GameParams.gu(radius_gu) * 2.0 / 256.0
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	l.material = mat
+	l.modulate = Color(color.r * energy * 0.35, color.g * energy * 0.35, color.b * energy * 0.35, 1.0)
+	l.scale = Vector2.ONE * GameParams.gu(radius_gu) * 2.0 / 256.0
+	l.z_as_relative = false
+	l.z_index = 30
 	parent.add_child(l)
 	return l
 

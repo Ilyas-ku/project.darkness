@@ -1,0 +1,120 @@
+
+seed=1 occupied=true first_entry=20s first_check=118s stats={ "visits": 2, "entries": 5, "rooms_swept": 6, "hiding_checks": 1, "hiding_skipped": 2, "hiding_found": 1 } result=CAUGHT
+     118.2s opened hiding spot Locker: someone inside
+     118.2s CHECK_HIDING_SPOT -> CHASE: victim visible
+     118.2s CHASE -> ATTACK: victim in attack range (0.48 gu)
+     118.5s attack hit
+     118.5s ATTACK -> CHASE: attack hit, recovery
+     119.5s CHASE -> ATTACK: victim in attack range (0.25 gu)
+     119.8s attack hit
+     119.8s ATTACK -> CHASE: attack hit, recovery
+     119.9s CHASE -> FINISH: victim downed and reachable
+     122.4s finisher completed
+seed=2 occupied=true first_entry=30s first_check=118s stats={ "visits": 2, "entries": 5, "rooms_swept": 6, "hiding_checks": 1, "hiding_skipped": 2, "hiding_found": 1 } result=CAUGHT
+     118.4s opened hiding spot Locker: someone inside
+     118.4s CHECK_HIDING_SPOT -> CHASE: victim visible
+     118.4s CHASE -> ATTACK: victim in attack range (0.48 gu)
+     118.7s attack hit
+     118.7s ATTACK -> CHASE: attack hit, recovery
+     119.7s CHASE -> ATTACK: victim in attack range (0.25 gu)
+     120.1s attack hit
+     120.1s ATTACK -> CHASE: attack hit, recovery
+     120.1s CHASE -> FINISH: victim downed and reachable
+     122.6s finisher completed
+seed=3 occupied=true first_entry=14s first_check=59s stats={ "visits": 1, "entries": 3, "rooms_swept": 4, "hiding_checks": 1, "hiding_skipped": 1, "hiding_found": 1 } result=CAUGHT
+      59.5s opened hiding spot Locker: someone inside
+      59.5s CHECK_HIDING_SPOT -> CHASE: victim visible
+      59.5s CHASE -> ATTACK: victim in attack range (0.48 gu)
+      59.8s attack hit
+      59.8s ATTACK -> CHASE: attack hit, recovery
+      60.9s CHASE -> ATTACK: victim in attack range (0.25 gu)
+      61.2s attack hit
+      61.2s ATTACK -> CHASE: attack hit, recovery
+      61.2s CHASE -> FINISH: victim downed and reachable
+      63.7s finisher completed
+seed=4 occupied=true first_entry=16s first_check=60s stats={ "visits": 1, "entries": 3, "rooms_swept": 4, "hiding_checks": 1, "hiding_skipped": 1, "hiding_found": 1 } result=CAUGHT
+      59.5s opened hiding spot Locker: someone inside
+      59.5s CHECK_HIDING_SPOT -> CHASE: victim visible
+      59.5s CHASE -> ATTACK: victim in attack range (0.48 gu)
+      59.9s attack hit
+      59.9s ATTACK -> CHASE: attack hit, recovery
+      60.9s CHASE -> ATTACK: victim in attack range (0.25 gu)
+      61.2s attack hit
+      61.2s ATTACK -> CHASE: attack hit, recovery
+      61.2s CHASE -> FINISH: victim downed and reachable
+      63.8s finisher completed
+seed=5 occupied=true first_entry=10s first_check=58s stats={ "visits": 1, "entries": 4, "rooms_swept": 4, "hiding_checks": 1, "hiding_skipped": 1, "hiding_found": 1 } result=CAUGHT
+      58.1s opened hiding spot Locker: someone inside
+      58.1s CHECK_HIDING_SPOT -> CHASE: victim visible
+      58.1s CHASE -> ATTACK: victim in attack range (0.49 gu)
+      58.4s attack hit
+      58.4s ATTACK -> CHASE: attack hit, recovery
+      59.5s CHASE -> ATTACK: victim in attack range (0.26 gu)
+      59.8s attack hit
+      59.8s ATTACK -> CHASE: attack hit, recovery
+      59.8s CHASE -> FINISH: victim downed and reachable
+      62.3s finisher completed
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+=== empty locker ===
+
+seed=1 occupied=false first_entry=23s first_check=74s stats={ "visits": 5, "entries": 10, "rooms_swept": 10, "hiding_checks": 3, "hiding_skipped": 2, "hiding_found": 0 } result=ACTIVE
+     186.8s opened hiding spot Locker: empty
+     188.6s finished area house
+     188.6s TRAVEL_TO_POI -> PATROL: area done
+     188.6s PATROL -> TRAVEL_TO_POI: least recently visited (south_forest)
+     192.2s swept a_sweep
+     194.8s swept b_sweep
+     194.8s finished area south_forest
+     194.8s TRAVEL_TO_POI -> PATROL: area done
+     194.8s PATROL -> TRAVEL_TO_POI: least recently visited (house_back)
+     197.9s entered house
+seed=2 occupied=false first_entry=4s first_check=28s stats={ "visits": 4, "entries": 9, "rooms_swept": 9, "hiding_checks": 3, "hiding_skipped": 1, "hiding_found": 0 } result=ACTIVE
+     187.5s swept a_sweep
+     187.5s finished area clearing
+     187.5s TRAVEL_TO_POI -> PATROL: area done
+     187.5s PATROL -> TRAVEL_TO_POI: least recently visited (exit_path)
+     191.7s swept a_sweep
+     191.7s finished area exit_path
+     191.7s TRAVEL_TO_POI -> PATROL: area done
+     191.7s PATROL -> TRAVEL_TO_POI: least recently visited (house)
+     196.2s entered house
+     198.2s swept c_living_sweep
+seed=3 occupied=false first_entry=14s first_check=65s stats={ "visits": 5, "entries": 9, "rooms_swept": 10, "hiding_checks": 2, "hiding_skipped": 3, "hiding_found": 0 } result=ACTIVE
+     187.9s PATROL -> TRAVEL_TO_POI: least recently visited (exit_path)
+     191.9s swept a_sweep
+     191.9s finished area exit_path
+     191.9s TRAVEL_TO_POI -> PATROL: area done
+     191.9s PATROL -> TRAVEL_TO_POI: least recently visited (clearing)
+     196.1s swept a_sweep
+     196.1s finished area clearing
+     196.1s TRAVEL_TO_POI -> PATROL: area done
+     196.1s PATROL -> TRAVEL_TO_POI: least recently visited (house_back)
+     197.8s entered house
+seed=4 occupied=false first_entry=16s first_check=60s stats={ "visits": 5, "entries": 8, "rooms_swept": 10, "hiding_checks": 3, "hiding_skipped": 2, "hiding_found": 0 } result=ACTIVE
+     187.9s TRAVEL_TO_POI -> PATROL: area done
+     188.0s PATROL -> TRAVEL_TO_POI: least recently visited (clearing)
+     191.0s swept a_sweep
+     191.0s finished area clearing
+     191.0s TRAVEL_TO_POI -> PATROL: area done
+     191.0s PATROL -> TRAVEL_TO_POI: least recently visited (north_forest)
+     195.0s swept a_sweep
+     195.0s finished area north_forest
+     195.0s TRAVEL_TO_POI -> PATROL: area done
+     195.0s PATROL -> TRAVEL_TO_POI: least recently visited (house_back)
+seed=5 occupied=false first_entry=11s first_check=59s stats={ "visits": 5, "entries": 9, "rooms_swept": 10, "hiding_checks": 2, "hiding_skipped": 3, "hiding_found": 0 } result=ACTIVE
+     188.0s swept a_sweep
+     190.4s swept b_sweep
+     190.4s finished area shed
+     190.4s TRAVEL_TO_POI -> PATROL: area done
+     190.4s PATROL -> TRAVEL_TO_POI: least recently visited (south_forest)
+     194.4s swept a_sweep
+     197.0s swept b_sweep
+     197.0s finished area south_forest
+     197.0s TRAVEL_TO_POI -> PATROL: area done
+     197.0s PATROL -> TRAVEL_TO_POI: least recently visited (west_bushes)
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

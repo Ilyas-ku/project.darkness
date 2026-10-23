@@ -16,8 +16,9 @@ func _case(seed: int, flee: bool) -> void:
 	s.killer.global_position = Vector2(12, 13) * 32
 	s.killer.facing = Vector2.RIGHT
 	var t := 0.0
+	var clock := [0.0]   # captured by reference in the lambda
 	var events: Array[String] = []
-	sv.health.state_changed.connect(func(o, n): events.append("%.2fs %s" % [t, HealthComponent.HState.keys()[n]]))
+	sv.health.state_changed.connect(func(o, n): events.append("%.2fs %s" % [clock[0], HealthComponent.HState.keys()[n]]))
 	for i in 40 * 60:
 		var dir := Vector2.ZERO
 		if flee:
@@ -26,6 +27,7 @@ func _case(seed: int, flee: bool) -> void:
 		sv.scripted_input = {"move": dir, "aim": sv.global_position + Vector2.RIGHT, "sprint": flee}
 		await physics_frame
 		t += 1.0 / 60.0
+		clock[0] = t
 		if s.is_finished():
 			break
 	print("seed=%d flee=%s result=%s t=%.1f health=%s combat=%s" % [seed, flee, GameSession.Phase.keys()[s.phase], t, events, s.killer.brain.combat_stats])

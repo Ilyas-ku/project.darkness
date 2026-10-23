@@ -32,6 +32,7 @@ func test_prepare_timer_and_spawn() -> void:
 	check_eq(s.phase, GameSession.Phase.ACTIVE, "ACTIVE")
 	var k: Node2D = s.killer
 	check(k.global_position.distance_to(s.survivor.global_position) >= GameParams.gu(10.0) - 0.1, "spawn >= 10 gu from survivor")
+	check(not s.killer.brain.memory.has_last_seen, "T01: the killer does not know the survivor's position at spawn")
 
 
 func test_exit_escaped_and_restart() -> void:
