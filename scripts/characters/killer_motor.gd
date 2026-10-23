@@ -49,7 +49,6 @@ func _ready() -> void:
 	agent.radius = GameParams.gu(params.killer_radius)
 	agent.avoidance_enabled = false
 	visual.radius_gu = params.killer_radius
-	visual.body_color = Color(0.85, 0.15, 0.12)
 
 
 # --- Perception interface (for the survivor's VisionSensor) --------------------

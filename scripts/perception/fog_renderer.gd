@@ -10,12 +10,22 @@ const SHADER_CODE := """
 shader_type canvas_item;
 uniform sampler2D visible_mask : filter_linear;
 uniform float explored_alpha = 0.62;
+uniform vec2 mask_texel = vec2(0.001, 0.001);
 void fragment() {
 	float explored = texture(TEXTURE, UV).r;
-	float vis = texture(visible_mask, UV).r;
+	// soft LOS edge: small blur of the visibility mask (geometry is unchanged)
+	float vis = 0.0;
+	for (int x = -1; x <= 1; x++) {
+		for (int y = -1; y <= 1; y++) {
+			vis += texture(visible_mask, UV + vec2(float(x), float(y)) * mask_texel * 1.5).r;
+		}
+	}
+	vis /= 9.0;
 	float a = mix(1.0, explored_alpha, explored);
-	a = mix(a, 0.0, vis);
-	COLOR = vec4(0.0, 0.0, 0.015, a);
+	a = mix(a, 0.0, smoothstep(0.15, 0.85, vis));
+	// remembered areas are tinted cold blue, unknown is black
+	vec3 col = mix(vec3(0.0, 0.0, 0.01), vec3(0.02, 0.04, 0.09), explored);
+	COLOR = vec4(col, a);
 }
 """
 
@@ -56,6 +66,7 @@ func setup(map_px: Vector2, cell_px: float, explored_alpha: float) -> void:
 	mat.shader = sh
 	mat.set_shader_parameter(&"visible_mask", _viewport.get_texture())
 	mat.set_shader_parameter(&"explored_alpha", explored_alpha)
+	mat.set_shader_parameter(&"mask_texel", Vector2.ONE / map_px)
 	sprite.material = mat
 	add_child(sprite)
 
@@ -77,5 +88,7 @@ class _MaskDraw extends Node2D:
 		if poly.size() < 3:
 			return
 		var eye := poly[0]
+		# the survivor's own body (radius ~0.4 gu) is never under the fog
+		draw_circle(eye, GameParams.gu(0.42), Color.WHITE)
 		for i in range(1, poly.size() - 1):
 			draw_colored_polygon(PackedVector2Array([eye, poly[i], poly[i + 1]]), Color.WHITE)

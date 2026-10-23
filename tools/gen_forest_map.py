@@ -12,6 +12,13 @@ STONES = [(10.5, 9.6), (15.5, 12), (4.5, 13.5)]
 CABIN = (3, 2)
 SHED = (19, 7.5)
 EXIT = (29.85, 19.25)
+# Dirt paths (gu polylines): door -> clearing -> exit gate, branch to the shed, window -> west bushes.
+PATHS = [
+    [(9.2, 8.2), (9.6, 10.5), (12.5, 12.2), (15, 13), (18.5, 14.5), (22, 16.6), (25.5, 18.6), (29.6, 19.25)],
+    [(15, 13), (17.5, 11.2), (19, 9.7)],
+    [(2.4, 5.0), (2.6, 8.5), (4.5, 12.0), (6.5, 14.6)],
+]
+
 # Areas of interest: (id, weight, is_house, bounds (x, y, w, h) gu, [(marker name, x, y)])
 # Marker names sort in visiting order; "sweep" = stop and look around, "hide" = consider hiding spots.
 AREAS = [
@@ -79,7 +86,8 @@ def main():
     node("GameClock", "Node", ".", props=['script = ExtResource("clock")'])
     node("SoundEventBus", "Node", ".", props=['script = ExtResource("bus")'])
     node("World", "Node2D", ".")
-    node("Bounds", "StaticBody2D", "World", props=['script = ExtResource("bounds")'])
+    paths = ", ".join("PackedVector2Array(" + ", ".join(f"{x}, {y}" for x, y in p) + ")" for p in PATHS)
+    node("Bounds", "StaticBody2D", "World", props=['script = ExtResource("bounds")', f"paths_gu = [{paths}]"])
     node("NavRegion", "NavigationRegion2D", "World", props=['script = ExtResource("nav")'])
     node("Cabin", None, "World", "cabin", [f"position = {v(*CABIN)}"])
     node("Shed", None, "World", "shed", [f"position = {v(*SHED)}"])

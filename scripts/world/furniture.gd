@@ -103,6 +103,5 @@ var _draw_offset := Vector2.ZERO:
 func _draw() -> void:
 	var s := size_gu * GameParams.PX_PER_GU
 	var r := Rect2(-s * 0.5 + _draw_offset, s)
-	var col: Color = {&"bed": Color(0.45, 0.4, 0.5), &"table": Color(0.42, 0.3, 0.2), &"chair": Color(0.38, 0.26, 0.16), &"crate": Color(0.5, 0.38, 0.2)}.get(kind, Color(0.4, 0.3, 0.2))
-	draw_rect(r, col)
-	draw_rect(r, col.darkened(0.5), false, 1.5)
+	draw_rect(Rect2(r.position + Vector2(3, 4), r.size), Color(0, 0.02, 0.05, 0.4))
+	draw_texture_rect(Art.tex("sprites/%s.png" % kind), r, false)

@@ -67,7 +67,7 @@ static var _current: GameParams
 @export_group("Fog of war")
 @export var fog_cell_size := 0.5
 @export var fog_update_hz := 15.0
-@export var night_tint := Color(0.55, 0.6, 0.78)
+@export var night_tint := Color(0.66, 0.72, 0.88)
 @export var fog_explored_alpha := 0.55
 
 @export_group("Sound")

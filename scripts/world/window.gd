@@ -14,6 +14,7 @@ func _ready() -> void:
 	add_to_group(&"window")
 	collision_layer = GameParams.L_WINDOW
 	collision_mask = 0
+	z_index = 7
 	_shape = CollisionShape2D.new()
 	var r := RectangleShape2D.new()
 	r.size = Vector2(width_gu, thickness_gu) * GameParams.PX_PER_GU
@@ -88,5 +89,4 @@ func interact(_actor: Node) -> void:
 func _draw() -> void:
 	var w := GameParams.gu(width_gu)
 	var t := GameParams.gu(thickness_gu)
-	draw_rect(Rect2(-w * 0.5, -t * 0.5, w, t), Color(0.45, 0.6, 0.7, 0.5))
-	draw_rect(Rect2(-w * 0.5, -t * 0.5, w, t), Color(0.35, 0.25, 0.15), false, 2.0)
+	draw_texture_rect(Art.tex("sprites/window.png"), Rect2(-w * 0.5, -t * 0.5, w, t), false)

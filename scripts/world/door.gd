@@ -82,14 +82,23 @@ func interact(actor: Node) -> void:
 	set_open(not is_open(), actor)
 
 
+var _swing := 0.0
+
+
+func _process(delta: float) -> void:
+	var target := 1.0 if displayed_open else 0.0
+	if not is_equal_approx(_swing, target):
+		_swing = move_toward(_swing, target, delta / 0.25)
+		queue_redraw()
+
+
 func _draw() -> void:
 	var w := GameParams.gu(width_gu)
 	var t := GameParams.gu(thickness_gu)
-	var col := Color(0.5, 0.33, 0.18)
-	if displayed_open:
-		# swung inward around the left hinge
-		draw_rect(Rect2(-w * 0.5 - t * 0.5, -w, t * 0.6, w), col)
-		draw_rect(Rect2(-w * 0.5, -t * 0.5, w, t), Color(0.2, 0.15, 0.1, 0.6), false, 1.0)
-	else:
-		draw_rect(Rect2(-w * 0.5, -t * 0.5, w, t), col)
-		draw_rect(Rect2(-w * 0.5, -t * 0.5, w, t), col.darkened(0.5), false, 1.5)
+	var tex := Art.tex("sprites/door.png")
+	# threshold
+	draw_rect(Rect2(-w * 0.5, -t * 0.5, w, t), Color(0.18, 0.13, 0.09))
+	# leaf swung inward (-y) around the left hinge; the drawn state is the remembered one
+	var hinge := Vector2(-w * 0.5, 0)
+	draw_set_transform(hinge, -_swing * PI * 0.5, Vector2.ONE)
+	draw_texture_rect(tex, Rect2(Vector2(0, -t * 0.5), Vector2(w, t)), false)

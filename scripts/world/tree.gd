@@ -1,6 +1,8 @@
 extends StaticBody2D
-## Tree: the trunk blocks movement and LOS; the canopy is visual only and fades
-## when a visible character stands under it.
+## Tree: the trunk blocks movement and LOS; the canopy is visual only, casts a
+## soft ground shadow and fades when a visible character stands under it.
+
+const CANOPIES := ["sprites/canopy_pine_a.png", "sprites/canopy_pine_b.png", "sprites/canopy_birch.png"]
 
 @export var trunk_radius_gu := 0.4
 @export var canopy_radius_gu := 1.4
@@ -10,24 +12,34 @@ var canopy: Node2D
 
 func _ready() -> void:
 	add_to_group(&"navigation_source")
+	add_to_group(&"tree")
 	collision_layer = GameParams.L_WORLD
 	collision_mask = 0
+	z_index = 6
 	var cs := CollisionShape2D.new()
 	var c := CircleShape2D.new()
 	c.radius = GameParams.gu(trunk_radius_gu)
 	cs.shape = c
 	add_child(cs)
+	var v := Art.variant(global_position, 3)
+	var r := GameParams.gu(canopy_radius_gu)
+	# ground shadow of the crown (cold, offset away from the moon)
+	var sh := Art.sprite(self, CANOPIES[v], -15, Vector2.ONE * r * 2.1)
+	sh.z_as_relative = false
+	sh.z_index = -7
+	sh.position = Vector2(GameParams.gu(0.35), GameParams.gu(0.45))
+	sh.modulate = Color(0, 0.02, 0.06, 0.45)
+	var trunk := Art.sprite(self, "sprites/trunk_%d.png" % Art.variant(global_position + Vector2.ONE, 3), 0,
+		Vector2.ONE * GameParams.gu(trunk_radius_gu) * 2.8)
+	trunk.rotation = float(Art.variant(global_position, 360))
 	canopy = _Canopy.new()
-	canopy.radius = GameParams.gu(canopy_radius_gu)
+	canopy.radius = r
+	canopy.z_as_relative = false
 	canopy.z_index = 10
 	canopy.add_to_group(&"canopy")
 	add_child(canopy)
-
-
-func _draw() -> void:
-	var r := GameParams.gu(trunk_radius_gu)
-	draw_circle(Vector2.ZERO, r, Color(0.36, 0.24, 0.14))
-	draw_arc(Vector2.ZERO, r, 0.0, TAU, 16, Color(0.2, 0.12, 0.06), 1.5)
+	var cs2 := Art.sprite(canopy, CANOPIES[v], 0, Vector2.ONE * r * 2.0)
+	cs2.rotation = float(Art.variant(global_position, 628)) * 0.01
 
 
 class _Canopy extends Node2D:
@@ -35,7 +47,3 @@ class _Canopy extends Node2D:
 
 	func covers(p: Vector2) -> bool:
 		return global_position.distance_to(p) <= radius
-
-	func _draw() -> void:
-		draw_circle(Vector2.ZERO, radius, Color(0.1, 0.28, 0.14, 0.85))
-		draw_circle(Vector2(-radius * 0.3, -radius * 0.25), radius * 0.55, Color(0.13, 0.33, 0.17, 0.6))

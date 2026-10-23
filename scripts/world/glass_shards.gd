@@ -12,9 +12,4 @@ func get_perception_points() -> PackedVector2Array:
 
 
 func _draw() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = int(global_position.x * 7 + global_position.y * 13)
-	for i in 7:
-		var p := Vector2(rng.randf_range(-7, 7), rng.randf_range(-7, 7))
-		var a := rng.randf() * TAU
-		draw_colored_polygon(PackedVector2Array([p, p + Vector2.from_angle(a) * 3, p + Vector2.from_angle(a + 1.2) * 2]), Color(0.55, 0.8, 0.6, 0.8))
+	draw_texture_rect(Art.tex("sprites/glass_shards.png"), Rect2(-10, -10, 20, 20), false)

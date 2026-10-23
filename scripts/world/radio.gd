@@ -58,9 +58,8 @@ func interact(actor: Node) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(-7, -4, 14, 8), Color(0.25, 0.22, 0.2))
-	draw_circle(Vector2(-3, 0), 2.5, Color(0.5, 0.5, 0.45))
-	draw_rect(Rect2(1, -2, 5, 4), Color(0.9, 0.7, 0.3) if is_on else Color(0.3, 0.28, 0.25))
+	draw_texture_rect(Art.tex("sprites/radio.png"), Rect2(-7.5, -5, 15, 10), false)
 	if is_on:
+		draw_rect(Rect2(1, -2.5, 5, 3), Color(1.0, 0.8, 0.4))
 		var k := fmod(_phase, 1.0)
 		draw_arc(Vector2.ZERO, 8 + k * 10, 0, TAU, 20, Color(0.9, 0.8, 0.4, 0.5 * (1.0 - k)), 1.0)

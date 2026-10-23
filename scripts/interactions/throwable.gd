@@ -163,10 +163,6 @@ func _clamp_to_map(p: Vector2) -> Vector2:
 
 
 func _draw() -> void:
-	var r := GameParams.gu(radius_gu)
-	if breaks_on_impact:
-		draw_rect(Rect2(-r * 0.5, -r * 1.2, r, r * 2.4), Color(0.3, 0.55, 0.35, 0.9))
-		draw_rect(Rect2(-r * 0.25, -r * 1.7, r * 0.5, r * 0.6), Color(0.3, 0.5, 0.35))
-	else:
-		draw_circle(Vector2.ZERO, r, Color(0.62, 0.62, 0.58))
-		draw_arc(Vector2.ZERO, r, 0.0, TAU, 12, Color(0.3, 0.3, 0.3), 1.0)
+	var t := Art.tex("sprites/bottle.png" if breaks_on_impact else "sprites/stone.png")
+	var sz := t.get_size() * Art.SRC_SCALE
+	draw_texture_rect(t, Rect2(-sz * 0.5, sz), false)

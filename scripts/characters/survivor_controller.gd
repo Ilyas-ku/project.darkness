@@ -55,10 +55,12 @@ func _ready() -> void:
 	visual.radius_gu = params.survivor_radius
 	_restore_vision()
 	var map_px := params.map_size_px()
-	camera.limit_left = 0
-	camera.limit_top = 0
-	camera.limit_right = int(map_px.x)
-	camera.limit_bottom = int(map_px.y)
+	# one unit of the surrounding tree line stays in frame at the map edge
+	var margin := int(GameParams.gu(1.0))
+	camera.limit_left = -margin
+	camera.limit_top = -margin
+	camera.limit_right = int(map_px.x) + margin
+	camera.limit_bottom = int(map_px.y) + margin
 	var vw := float(ProjectSettings.get_setting("display/window/size/viewport_width", 1152))
 	var z := vw / GameParams.gu(params.camera_view_width_gu)
 	camera.zoom = Vector2(z, z)
@@ -323,6 +325,7 @@ func try_throw(target_point: Vector2) -> bool:
 
 func _on_health_changed(_old: int, new_state: int) -> void:
 	cancel_channel("hit")
+	visual.flash_hurt()
 	hurt.emit()
 	_drop_blood()
 	_blood_timer = params.blood_interval

@@ -17,7 +17,10 @@ func _ready() -> void:
 	add_to_group(&"exit_gate")
 	collision_layer = GameParams.L_WORLD
 	collision_mask = 0
-	z_index = 3
+	z_index = 6
+	var lantern := Art.sprite(self, "sprites/lamp.png", 1)
+	lantern.position = Vector2(-GameParams.gu(0.25), -GameParams.gu(1.35))
+	Art.point_light(self, Color(1.0, 0.7, 0.4), 3.0, 0.9).position = lantern.position
 	var cs := CollisionShape2D.new()
 	var r := RectangleShape2D.new()
 	r.size = size_gu * GameParams.PX_PER_GU
@@ -78,9 +81,9 @@ func _draw() -> void:
 	var hinge := Vector2(0, -s.y * 0.5)
 	var ang := _open_anim * PI * 0.5
 	var leaf := Transform2D(ang, hinge)
-	var pts := PackedVector2Array([Vector2(-s.x * 0.5, 0), Vector2(s.x * 0.5, 0), Vector2(s.x * 0.5, s.y), Vector2(-s.x * 0.5, s.y)])
-	draw_colored_polygon(leaf * pts, Color(0.42, 0.3, 0.18))
-	draw_polyline(leaf * (pts + PackedVector2Array([pts[0]])), Color(0.2, 0.13, 0.07), 1.5)
+	draw_set_transform(hinge, ang, Vector2.ONE)
+	draw_texture_rect(Art.tex("sprites/gate.png"), Rect2(Vector2(-s.x * 0.5, 0), s), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	draw_circle(hinge, 3, Color(0.3, 0.3, 0.3))
 	draw_circle(Vector2(0, s.y * 0.5), 3, Color(0.3, 0.3, 0.3))
 	# progress of the survivor holding E, drawn over the gate

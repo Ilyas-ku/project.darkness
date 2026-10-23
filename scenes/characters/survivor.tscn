@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://scripts/characters/character_visual.gd" id="6"]
 
 [node name="Survivor" type="CharacterBody2D"]
-z_index = 55
+z_index = 5
 script = ExtResource("1")
 
 [node name="VisionSensor" type="Node" parent="."]
@@ -25,6 +25,6 @@ script = ExtResource("5")
 
 [node name="Visual" type="Node2D" parent="."]
 script = ExtResource("6")
-body_color = Color(0.35, 0.6, 1, 1)
+sheet_path = "sprites/survivor_sheet.png"
 
 [node name="Camera2D" type="Camera2D" parent="."]

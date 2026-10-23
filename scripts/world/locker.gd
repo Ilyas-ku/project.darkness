@@ -16,6 +16,7 @@ func _ready() -> void:
 	add_to_group(&"locker")
 	collision_layer = GameParams.L_FURNITURE
 	collision_mask = 0
+	z_index = 4
 	var cs := CollisionShape2D.new()
 	var r := RectangleShape2D.new()
 	r.size = size_gu * GameParams.PX_PER_GU
@@ -103,9 +104,7 @@ func interact(actor: Node) -> void:
 
 func _draw() -> void:
 	var s := size_gu * GameParams.PX_PER_GU
-	var rect := Rect2(-s * 0.5, s)
-	draw_rect(rect, Color(0.3, 0.2, 0.12))
-	draw_rect(rect, Color(0.12, 0.08, 0.04), false, 2.0)
-	draw_line(Vector2(0, -s.y * 0.5), Vector2(0, s.y * 0.5), Color(0.12, 0.08, 0.04), 1.5)
-	# slit on the front side
-	draw_line(Vector2(-s.x * 0.3, s.y * 0.5 - 2), Vector2(s.x * 0.3, s.y * 0.5 - 2), Color(0.05, 0.05, 0.05), 2.0)
+	draw_rect(Rect2(-s * 0.5 + Vector2(3, 4), s), Color(0, 0.02, 0.05, 0.45))
+	draw_texture_rect(Art.tex("sprites/locker.png"), Rect2(-s * 0.5, s), false)
+	if state == State.PEEKING:
+		draw_line(Vector2(-s.x * 0.2, s.y * 0.5 - 2), Vector2(s.x * 0.2, s.y * 0.5 - 2), Color(0.9, 0.8, 0.6, 0.8), 2.0)

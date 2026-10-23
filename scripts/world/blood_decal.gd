@@ -24,8 +24,5 @@ func _physics_process(_delta: float) -> void:
 
 
 func _draw() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = _seed
-	for i in 4:
-		var p := Vector2(rng.randf_range(-5, 5), rng.randf_range(-5, 5))
-		draw_circle(p, rng.randf_range(1.5, 3.5), Color(0.45, 0.02, 0.03, 0.85))
+	draw_set_transform(Vector2.ZERO, float(_seed % 628) * 0.01, Vector2.ONE)
+	draw_texture_rect(Art.tex("sprites/blood_%d.png" % (_seed % 3)), Rect2(-8, -8, 16, 16), false)

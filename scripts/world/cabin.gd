@@ -30,6 +30,7 @@ const FURNITURE := [
 @export var locker_pos_gu := Vector2(1.2, 0.65)
 
 var _wall_rects: Array[Rect2] = []
+var _wall_tex: Texture2D
 
 
 func _ready() -> void:
@@ -37,6 +38,10 @@ func _ready() -> void:
 	add_to_group(&"cabin")
 	collision_layer = GameParams.L_WORLD
 	collision_mask = 0
+	z_index = 6
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	_wall_tex = Art.tex("textures/wall_logs.png")
+	_build_interior_art()
 	var W := size_gu.x
 	var H := size_gu.y
 	var t := wall_gu
@@ -94,6 +99,26 @@ func _wall(r_gu: Rect2) -> void:
 	add_child(cs)
 
 
+## Floors (two tones for the two rooms), a rug, an oil lamp with warm light.
+func _build_interior_art() -> void:
+	var floor_node := _Floor.new()
+	floor_node.cabin = self
+	floor_node.z_as_relative = false
+	floor_node.z_index = -6
+	floor_node.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	add_child(floor_node)
+	var rug := Art.sprite(self, "sprites/rug.png", 0, Vector2(2.0, 1.4) * GameParams.PX_PER_GU)
+	rug.z_as_relative = false
+	rug.z_index = -5
+	rug.position = Vector2(2.1, 4.1) * GameParams.PX_PER_GU
+	var lamp := Art.sprite(self, "sprites/lamp.png", 0)
+	lamp.z_as_relative = false
+	lamp.z_index = 5
+	lamp.position = Vector2(5.55, 1.45) * GameParams.PX_PER_GU
+	var light := Art.point_light(self, Color(1.0, 0.72, 0.42), 3.2, 1.1)
+	light.position = lamp.position
+
+
 func get_wall_rects() -> Array[Rect2]:
 	return _wall_rects
 
@@ -113,7 +138,25 @@ func get_bounds() -> Rect2:
 
 
 func _draw() -> void:
-	var s := size_gu * GameParams.PX_PER_GU
-	draw_rect(Rect2(Vector2.ZERO, s), Color(0.24, 0.2, 0.16))
+	var sh := Vector2(GameParams.gu(0.12), GameParams.gu(0.16))
+	for r in _wall_rects:  # cold drop shadow
+		draw_rect(Rect2(r.position + sh, r.size), Color(0.0, 0.02, 0.05, 0.45))
 	for r in _wall_rects:
-		draw_rect(r, Color(0.55, 0.52, 0.48))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(Art.SRC_SCALE, Art.SRC_SCALE))
+		draw_texture_rect(_wall_tex, Rect2(r.position / Art.SRC_SCALE, r.size / Art.SRC_SCALE), true)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		draw_rect(r, Color(0.16, 0.11, 0.07), false, 1.5)
+		draw_line(r.position, r.position + Vector2(r.size.x, 0), Color(0.75, 0.66, 0.52, 0.5), 1.0)
+
+
+class _Floor extends Node2D:
+	var cabin: Node
+
+	func _draw() -> void:
+		var tex := Art.tex("textures/floor_wood.png")
+		var g := GameParams.PX_PER_GU
+		var sz: Vector2 = cabin.size_gu
+		var ix: float = cabin.inner_wall_x_gu
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(Art.SRC_SCALE, Art.SRC_SCALE))
+		draw_texture_rect(tex, Rect2(Vector2.ZERO, Vector2(ix, sz.y) * g / Art.SRC_SCALE), true, Color(0.85, 0.8, 0.85))
+		draw_texture_rect(tex, Rect2(Vector2(ix, 0) * g / Art.SRC_SCALE, Vector2(sz.x - ix, sz.y) * g / Art.SRC_SCALE), true, Color(1.0, 0.95, 0.88))

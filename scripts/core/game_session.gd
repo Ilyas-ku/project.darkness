@@ -43,6 +43,7 @@ func _ready() -> void:
 	exit_gate.opened.connect(_on_exit_opened)
 	survivor.health.died.connect(_on_survivor_died)
 	survivor.hearing.heard.connect(_on_survivor_heard)
+	_setup_atmosphere()
 	hud.setup(self)
 	debug_overlay.setup(self)
 	set_debug(debug_enabled)
@@ -51,6 +52,26 @@ func _ready() -> void:
 	DebugPresets.apply(self)
 	hud.set_instruction(DebugPresets.instruction())
 	hud.footsteps_indicator_changed.connect(_on_footsteps_indicator)
+
+
+## Night tint, a faint light around the survivor for readability, focus highlight, audio.
+func _setup_atmosphere() -> void:
+	var cm := CanvasModulate.new()
+	cm.color = params.night_tint
+	add_child(cm)
+	var l := Art.point_light(survivor, Color(0.75, 0.82, 1.0), 4.5, 0.6)
+	l.name = &"ReadabilityLight"
+	var fh := FocusHighlight.new()
+	fh.survivor = survivor
+	$World.add_child(fh)
+	var ad := AudioDirector.new()
+	ad.name = &"AudioDirector"
+	add_child(ad)
+	ad.setup(self)
+
+
+func _exit_tree() -> void:
+	Art.clear_cache()
 
 
 func _apply_cmdline() -> void:
