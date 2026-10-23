@@ -3,7 +3,12 @@ extends CanvasLayer
 ## unidentified-footsteps signal. No minimap, no killer markers, no directions.
 ## Also hosts the pause menu and the result screen.
 
+signal footsteps_indicator_changed(shown: bool)
+
 var session: Node
+var _instruction: Label
+var _debug_menu: PanelContainer
+var _steps_shown := false
 
 var _timer_label: Label
 var _stamina_bar: ProgressBar
@@ -79,7 +84,11 @@ func _build() -> void:
 	_progress.custom_minimum_size = Vector2(320, 8)
 	center.add_child(_progress)
 
-	_pause_panel = _panel(root, "ПАУЗА", "Esc — продолжить")
+	_instruction = _label(root, Vector2(16, 44), 14)
+	_instruction.modulate = Color(0.8, 0.9, 1.0)
+	_build_debug_menu(root)
+
+	_pause_panel = _panel(root, "ПАУЗА", "Esc — продолжить · F2 — debug-пресеты")
 	_add_buttons(_pause_panel.get_child(0))
 	_pause_panel.visible = false
 
@@ -143,6 +152,44 @@ func _refresh_inventory() -> void:
 	_inventory_label.text = "Инвентарь " + " ".join(parts)
 
 
+func _build_debug_menu(root: Control) -> void:
+	_debug_menu = PanelContainer.new()
+	_debug_menu.set_anchors_preset(Control.PRESET_CENTER)
+	_debug_menu.position = Vector2(-220, -170)
+	_debug_menu.custom_minimum_size = Vector2(440, 0)
+	_debug_menu.visible = false
+	root.add_child(_debug_menu)
+	var box := VBoxContainer.new()
+	_debug_menu.add_child(box)
+	var t := Label.new()
+	t.text = "DEBUG-ПРЕСЕТЫ (F2)"
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(t)
+	for id in DebugPresets.TITLES:
+		var b := Button.new()
+		b.text = "%s — %s" % [id, DebugPresets.TITLES[id]]
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.pressed.connect(func():
+			DebugPresets.active = id
+			session.restart())
+		box.add_child(b)
+	var normal := Button.new()
+	normal.text = "Обычная игра"
+	normal.pressed.connect(func():
+		DebugPresets.active = &""
+		session.restart())
+	box.add_child(normal)
+
+
+func toggle_debug_menu() -> void:
+	_debug_menu.visible = not _debug_menu.visible
+	get_tree().paused = _debug_menu.visible or session.is_finished()
+
+
+func set_instruction(text: String) -> void:
+	_instruction.text = ("[%s] " % DebugPresets.active + text) if text != "" else ""
+
+
 func flash_footsteps() -> void:
 	_steps_left = GameParams.current().hud_footsteps_hold
 
@@ -179,7 +226,11 @@ func _process(delta: float) -> void:
 		return
 	if not get_tree().paused:
 		_steps_left = maxf(0.0, _steps_left - delta)
-	_steps_label.modulate.a = 1.0 if _steps_left > 0.0 else 0.0
+	_steps_label.modulate.a = clampf(_steps_left / GameParams.current().hud_footsteps_hold, 0.0, 1.0)
+	var shown := _steps_left > 0.0
+	if shown != _steps_shown:
+		_steps_shown = shown
+		footsteps_indicator_changed.emit(shown)
 	var sv: SurvivorController = session.survivor
 	_stamina_bar.value = sv.stamina.value
 	_health_label.text = "Здоровье: " + ["здоров", "ранен", "повален", "мёртв"][sv.health.state]

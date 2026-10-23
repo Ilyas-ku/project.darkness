@@ -17,6 +17,7 @@ static func ensure_actions() -> void:
 	_key(&"slot_1", KEY_1)
 	_key(&"slot_2", KEY_2)
 	_key(&"debug_toggle", KEY_F3)
+	_key(&"debug_menu", KEY_F2)
 	_key(&"pause", KEY_ESCAPE)
 	_key(&"restart", KEY_R)
 

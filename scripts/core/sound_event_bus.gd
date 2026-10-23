@@ -55,17 +55,33 @@ func emit_sound(kind: StringName, source: Vector2, radius_gu: float, emitter_id:
 	ev.radius_px = GameParams.gu(radius_gu)
 	ev.emitter_id = emitter_id
 	ev.time = GameClock.now()
+	var p := GameParams.current()
 	for l in _listeners.duplicate():
 		if not is_instance_valid(l):
 			_listeners.erase(l)
 			continue
 		if l.get_listener_id() == emitter_id:
 			continue
+		var lp: Vector2 = l.get_listener_position()
 		var r: float = ev.radius_px * l.get_hearing_multiplier()
-		if l.get_listener_position().distance_to(source) <= r:
-			l.receive_sound(ev)
+		var walls := _walls_between(source, lp)
+		if kind == &"footsteps" and walls:
+			r *= p.footsteps_wall_attenuation
+		var d := lp.distance_to(source)
+		if d <= r:
+			l.receive_sound(ev, d, r, walls)
+		elif kind == &"footsteps":
+			l.note_footsteps(false, "out of hearing range", d, r, walls)
 	sound_emitted.emit(ev)
 	return ev
+
+
+func _walls_between(a: Vector2, b: Vector2) -> bool:
+	var space := get_viewport().world_2d.direct_space_state if is_inside_tree() else null
+	if space == null:
+		return false
+	var q := PhysicsRayQueryParameters2D.create(a, b, GameParams.LOS_MASK)
+	return not space.intersect_ray(q).is_empty()
 
 
 ## Convenience used by emitters; silently does nothing without a bus (unit tests).

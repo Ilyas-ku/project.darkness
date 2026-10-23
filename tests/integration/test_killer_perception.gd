@@ -123,7 +123,7 @@ func test_impact_triggers_investigate_region() -> void:
 func test_footsteps_only_local_check() -> void:
 	await physics_frames(5)
 	var before := killer.global_position
-	SoundEventBus.instance().emit_sound(&"footsteps", killer.global_position + g(1.5, 1.5), 3.0, 12345)
+	SoundEventBus.instance().emit_sound(&"footsteps", killer.global_position + g(1.5, 1.5), 3.0, 0)
 	await physics_frames(2)
 	check_eq(st(), "LOCAL_SEARCH", "footsteps -> cautious LOCAL_SEARCH")
 	check(killer.brain.search_center.distance_to(before) < GameParams.gu(0.5), "search centred on the killer, not on the source")

@@ -6,6 +6,9 @@ extends Node
 signal heard(observation: Observation.HeardObservation)
 
 var rng := RandomNumberGenerator.new()
+## Latest footsteps evaluation for this listener (debug only):
+## {time, distance_gu, radius_gu, walls, heard, reason}
+var last_footsteps_diag := {}
 var _modifiers := {}
 
 
@@ -44,8 +47,24 @@ func get_hearing_multiplier() -> float:
 	return m
 
 
-func receive_sound(ev: SoundEventBus.SoundEvent) -> void:
+func receive_sound(ev: SoundEventBus.SoundEvent, distance_px: float = 0.0, radius_px: float = 0.0, walls: bool = false) -> void:
+	if ev.kind == &"footsteps":
+		# Footsteps are only a signal of someone moving OUTSIDE direct view.
+		var emitter: Object = instance_from_id(ev.emitter_id) if is_instance_id_valid(ev.emitter_id) else null
+		var vis: VisionSensor = get_parent().get_node_or_null(^"VisionSensor")
+		if emitter != null and vis != null and emitter.has_method(&"get_perception_points") \
+				and vis.count_visible_points(emitter.get_perception_points()) > 0:
+			note_footsteps(false, "source in direct LOS", distance_px, radius_px, walls)
+			return
+		note_footsteps(true, "heard", distance_px, radius_px, walls)
 	heard.emit(sanitize(ev.kind, ev.source_world_position, GameClock.now(), rng, GameParams.current()))
+
+
+func note_footsteps(was_heard: bool, reason: String, distance_px: float, radius_px: float, walls: bool) -> void:
+	last_footsteps_diag = {
+		"time": GameClock.now(), "distance_gu": distance_px / GameParams.PX_PER_GU,
+		"radius_gu": radius_px / GameParams.PX_PER_GU, "walls": walls, "heard": was_heard, "reason": reason,
+	}
 
 
 ## Pure conversion from an internal event to the public observation.

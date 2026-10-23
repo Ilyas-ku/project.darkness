@@ -22,6 +22,8 @@ var motor: Node
 var vision: VisionSensor
 var rng := RandomNumberGenerator.new()
 var transition_log: Array[String] = []
+## Print every log line to the console (debug presets).
+var verbose_log := false
 
 var search_center := Vector2.ZERO
 var search_radius_px := 0.0
@@ -127,6 +129,8 @@ func display_state() -> String:
 
 func _log(line: String) -> void:
 	transition_log.append("%6.1fs %s" % [GameClock.now(), line])
+	if verbose_log:
+		print("[killer] ", transition_log[-1])
 	if transition_log.size() > 10:
 		transition_log.pop_front()
 
@@ -481,7 +485,14 @@ func _tick_last_seen() -> void:
 
 
 func _tick_investigate(delta: float) -> void:
+	if motor.is_busy():
+		return
 	if _wait_left > 0.0:
+		var radio := _radio_to_silence()
+		if radio != null:
+			motor.start_use(radio, 0.5)
+			_log("switching off the radio")
+			return
 		_wait_left -= delta
 		_sweep_look(delta)
 		if _wait_left <= 0.0:
@@ -574,6 +585,15 @@ func _closest_nav_point(p: Vector2) -> Vector2:
 	if not map.is_valid():
 		return p
 	return NavigationServer2D.map_get_closest_point(map, p)
+
+
+## A playing radio the killer can actually see within reach.
+func _radio_to_silence() -> Node:
+	for r in get_tree().get_nodes_in_group(&"radio"):
+		if r.is_on and r.global_position.distance_to(motor.global_position) <= GameParams.gu(2.5) \
+				and vision.can_see_point(r.global_position):
+			return r
+	return null
 
 
 func _locker_at(p: Vector2, tol_gu: float) -> Node:

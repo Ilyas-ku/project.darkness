@@ -7,6 +7,18 @@ extends StaticBody2D
 const DOOR_SCENE := preload("res://scenes/world/door.tscn")
 const LOCKER_SCENE := preload("res://scenes/world/locker.tscn")
 const WINDOW_SCENE := preload("res://scenes/world/window.tscn")
+const FURNITURE_SCENE := preload("res://scenes/world/furniture.tscn")
+const RADIO_SCENE := preload("res://scenes/items/radio.tscn")
+const BOTTLE_SCENE := preload("res://scenes/items/bottle.tscn")
+
+## Furniture: [node name, kind, display name, local centre gu, size gu, tall, movable]
+const FURNITURE := [
+	["Bed", &"bed", "кровать", Vector2(3.0, 1.35), Vector2(1.2, 2.0), false, false],
+	["Table", &"table", "стол", Vector2(6.0, 1.6), Vector2(1.6, 1.0), false, false],
+	["ChairA", &"chair", "стул", Vector2(4.85, 1.6), Vector2(0.5, 0.5), false, true],
+	["ChairB", &"chair", "стул", Vector2(7.2, 1.6), Vector2(0.5, 0.5), false, true],
+	["Crate", &"crate", "ящик", Vector2(4.9, 4.7), Vector2(0.8, 0.8), true, true],
+]
 
 @export var size_gu := Vector2(8, 6)
 @export var wall_gu := 0.3
@@ -44,6 +56,18 @@ func _ready() -> void:
 	_add(DOOR_SCENE, Vector2(inner_wall_x_gu, inner_door_y_gu), PI * 0.5, &"InnerDoor")
 	_add(WINDOW_SCENE, Vector2(t * 0.5, window_y_gu), PI * 0.5, &"Window")
 	_add(LOCKER_SCENE, locker_pos_gu, 0.0, &"Locker")
+	for f in FURNITURE:
+		var n: Node2D = FURNITURE_SCENE.instantiate()
+		n.name = f[0]
+		n.kind = f[1]
+		n.display_name = f[2]
+		n.position = f[3] * GameParams.PX_PER_GU
+		n.size_gu = f[4]
+		n.tall = f[5]
+		n.movable = f[6]
+		add_child(n)
+	_add(RADIO_SCENE, Vector2(6.3, 1.55), 0.0, &"Radio")
+	_add(BOTTLE_SCENE, Vector2(7.2, 5.0), 0.0, &"Bottle")
 
 
 func _add(scene: PackedScene, pos_gu: Vector2, rot: float, node_name: StringName) -> Node2D:

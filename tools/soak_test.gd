@@ -5,6 +5,8 @@ extends SceneTree
 ##   godot --headless --path . --fixed-fps 60 -s res://tools/soak_test.gd
 
 const MINUTES := 10.0
+## Also log killer motor actions (doors, windows) to check route choices.
+var actions := {}
 
 var rng := RandomNumberGenerator.new()
 var results := {"ESCAPED": 0, "CAUGHT": 0}
@@ -48,9 +50,12 @@ func _run() -> void:
 		if f % 200 == 0:
 			sv.try_throw(sv.global_position + dir * 150.0)
 		if s.killer != null:
+			var act: String = s.killer.current_action()
+			if act != "":
+				actions[act] = actions.get(act, 0) + 1
 			var st: String = s.killer.brain.state_name()
 			states[st] = states.get(st, 0) + 1
 		await physics_frame
 		f += 1
-	print("soak done: results=", results, " fsm_frames=", states)
+	print("soak done: results=", results, " fsm_frames=", states, " motor_action_frames=", actions)
 	quit()

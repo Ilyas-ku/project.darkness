@@ -136,6 +136,13 @@ func start_open_locker(locker: Node) -> void:
 	_action = {"kind": &"locker", "left": params.locker_enter_exit_time, "object": locker}
 
 
+## Generic timed use of a world object (switching off a radio).
+func start_use(obj: Node, duration: float) -> void:
+	stop()
+	look_towards(obj.global_position - global_position)
+	_action = {"kind": &"use", "left": duration, "object": obj}
+
+
 func get_current_path() -> PackedVector2Array:
 	return agent.get_current_navigation_path() if _has_target else PackedVector2Array()
 
@@ -290,4 +297,6 @@ func _finish_action() -> void:
 		&"locker":
 			var found: bool = a.object.killer_open(self)
 			locker_checked.emit(a.object, found)
+		&"use":
+			a.object.set_on(false, self)
 	action_finished.emit(a.kind)

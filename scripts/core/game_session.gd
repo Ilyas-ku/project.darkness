@@ -48,6 +48,9 @@ func _ready() -> void:
 	set_debug(debug_enabled)
 	prepare_left = 0.0 if params.skip_prepare else params.prepare_time
 	print("[session] seed=%d prepare=%.1fs" % [seed_used, prepare_left])
+	DebugPresets.apply(self)
+	hud.set_instruction(DebugPresets.instruction())
+	hud.footsteps_indicator_changed.connect(_on_footsteps_indicator)
 
 
 func _apply_cmdline() -> void:
@@ -58,6 +61,8 @@ func _apply_cmdline() -> void:
 			params.skip_prepare = true
 		elif a == "--debug":
 			debug_enabled = true
+		elif a.begins_with("--preset="):
+			DebugPresets.active = StringName(a.get_slice("=", 1))
 
 
 func _place_survivor() -> void:
@@ -106,15 +111,23 @@ func choose_killer_spawn() -> Vector2:
 func spawn_killer() -> void:
 	if killer != null:
 		return
-	killer = KILLER_SCENE.instantiate()
 	var p := choose_killer_spawn()
+	spawn_killer_at(p, (params.map_size_px() * 0.5 - p).normalized())
+
+
+func spawn_killer_at(p: Vector2, facing_dir: Vector2) -> void:
+	if killer != null:
+		return
+	killer = KILLER_SCENE.instantiate()
 	killer.position = p
 	actors.add_child(killer)
-	killer.facing = (params.map_size_px() * 0.5 - p).normalized()
+	killer.facing = facing_dir
+	killer.brain.verbose_log = DebugPresets.active != &""
 	killer.brain.rng.seed = seed_used + 7
 	killer.hearing.rng.seed = seed_used + 13
 	killer.brain.activate()
 	phase = Phase.ACTIVE
+	prepare_left = 0.0
 	print("[session] killer spawned at %s (gu)" % str(p / GameParams.PX_PER_GU))
 
 
@@ -134,9 +147,19 @@ func _on_survivor_died() -> void:
 
 
 func _on_survivor_heard(obs: Observation.HeardObservation) -> void:
-	# Footstep indicator only for someone else's movement outside direct LOS.
-	if obs.kind == &"footsteps" and not perception.killer_perceived:
+	# HearingSensor already dropped footsteps whose source is in direct LOS.
+	if obs.kind == &"footsteps":
 		hud.flash_footsteps()
+
+
+func _on_footsteps_indicator(shown: bool) -> void:
+	if DebugPresets.active == &"" and not debug_enabled:
+		return
+	var d: Dictionary = survivor.hearing.last_footsteps_diag
+	if shown:
+		print("[footsteps] indicator ON: %s (d=%.1f gu, r=%.1f gu, walls=%s)" % [d.get("reason", "?"), d.get("distance_gu", 0.0), d.get("radius_gu", 0.0), d.get("walls", false)])
+	else:
+		print("[footsteps] indicator OFF: no audible steps for %.2f s (last: %s)" % [params.hud_footsteps_hold, d.get("reason", "?")])
 
 
 func _finish(result: Phase) -> void:
@@ -181,3 +204,5 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_debug(not debug_enabled)
 	elif event.is_action_pressed(&"restart") and (debug_enabled or is_finished()):
 		restart()
+	elif event.is_action_pressed(&"debug_menu"):
+		hud.toggle_debug_menu()
