@@ -19,7 +19,13 @@ func before_each() -> void:
 	s = tree.current_scene
 	for d in tree.get_nodes_in_group(&"door"):
 		d.set_open(true, null)
-	await physics_frames(2)
+	# navigation maps sync asynchronously: wait until the baked region is in the map
+	var map: RID = s.nav_region.get_navigation_map()
+	for i in 120:
+		if NavigationServer2D.map_get_iteration_id(map) > 0:
+			break
+		await tree.physics_frame
+	await physics_frames(10)
 
 
 func after_each() -> void:
@@ -36,6 +42,11 @@ func _walk(points: Array) -> String:
 	for i in range(1, points.size()):
 		var goal: Vector2 = points[i] * GameParams.PX_PER_GU
 		var path := NavigationServer2D.map_get_path(map, sv.global_position, goal, true)
+		for retry in 30:
+			if not path.is_empty():
+				break
+			await tree.physics_frame
+			path = NavigationServer2D.map_get_path(map, sv.global_position, goal, true)
 		if path.is_empty():
 			return "no path to %s" % str(points[i])
 		var idx := 0
