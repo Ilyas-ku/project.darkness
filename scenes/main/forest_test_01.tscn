@@ -1,0 +1,202 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/game_session.gd" id="session"]
+[ext_resource type="Script" path="res://scripts/core/game_clock.gd" id="clock"]
+[ext_resource type="Script" path="res://scripts/core/sound_event_bus.gd" id="bus"]
+[ext_resource type="Script" path="res://scripts/world/map_bounds.gd" id="bounds"]
+[ext_resource type="Script" path="res://scripts/core/navigation_builder.gd" id="nav"]
+[ext_resource type="Script" path="res://scripts/perception/fog_renderer.gd" id="fog"]
+[ext_resource type="Script" path="res://scripts/perception/player_perception_view.gd" id="view"]
+[ext_resource type="Script" path="res://scripts/ui/debug_overlay.gd" id="debug"]
+[ext_resource type="Script" path="res://scripts/ui/gameplay_hud.gd" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/world/cabin.tscn" id="cabin"]
+[ext_resource type="PackedScene" path="res://scenes/world/shed.tscn" id="shed"]
+[ext_resource type="PackedScene" path="res://scenes/world/tree.tscn" id="tree"]
+[ext_resource type="PackedScene" path="res://scenes/world/bush.tscn" id="bush"]
+[ext_resource type="PackedScene" path="res://scenes/items/stone.tscn" id="stone"]
+[ext_resource type="PackedScene" path="res://scenes/world/exit.tscn" id="exit"]
+[ext_resource type="PackedScene" path="res://scenes/characters/survivor.tscn" id="survivor"]
+
+[node name="ForestTest01" type="Node2D"]
+script = ExtResource("session")
+
+[node name="GameClock" type="Node" parent="."]
+script = ExtResource("clock")
+
+[node name="SoundEventBus" type="Node" parent="."]
+script = ExtResource("bus")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Bounds" type="StaticBody2D" parent="World"]
+script = ExtResource("bounds")
+
+[node name="NavRegion" type="NavigationRegion2D" parent="World"]
+script = ExtResource("nav")
+
+[node name="Cabin" parent="World" instance=ExtResource("cabin")]
+position = Vector2(64, 64)
+
+[node name="Shed" parent="World" instance=ExtResource("shed")]
+position = Vector2(608, 240)
+
+[node name="Trees" type="Node2D" parent="World"]
+
+[node name="Tree01" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(416, 96)
+
+[node name="Tree02" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(768, 112)
+
+[node name="Tree03" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(880, 224)
+
+[node name="Tree04" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(128, 352)
+
+[node name="Tree05" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(272, 400)
+
+[node name="Tree06" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(368, 528)
+
+[node name="Tree07" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(96, 560)
+
+[node name="Tree08" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(192, 688)
+
+[node name="Tree09" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(400, 672)
+
+[node name="Tree10" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(624, 528)
+
+[node name="Tree11" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(720, 384)
+
+[node name="Tree12" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(816, 496)
+
+[node name="Tree13" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(816, 336)
+
+[node name="Tree14" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(496, 624)
+
+[node name="Tree15" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(672, 688)
+
+[node name="Tree16" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(400, 304)
+
+[node name="Tree17" parent="World/Trees" instance=ExtResource("tree")]
+position = Vector2(896, 416)
+
+[node name="Bushes" type="Node2D" parent="World"]
+
+[node name="Bush01" parent="World/Bushes" instance=ExtResource("bush")]
+position = Vector2(464, 208)
+radius_gu = 1.0
+
+[node name="Bush02" parent="World/Bushes" instance=ExtResource("bush")]
+position = Vector2(208, 480)
+radius_gu = 1.2
+
+[node name="Bush03" parent="World/Bushes" instance=ExtResource("bush")]
+position = Vector2(624, 400)
+radius_gu = 1.0
+
+[node name="Bush04" parent="World/Bushes" instance=ExtResource("bush")]
+position = Vector2(784, 608)
+radius_gu = 1.1
+
+[node name="Bush05" parent="World/Bushes" instance=ExtResource("bush")]
+position = Vector2(304, 608)
+radius_gu = 1.0
+
+[node name="Bush06" parent="World/Bushes" instance=ExtResource("bush")]
+position = Vector2(864, 121.6)
+radius_gu = 0.9
+
+[node name="Items" type="Node2D" parent="World"]
+
+[node name="Stone01" parent="World/Items" instance=ExtResource("stone")]
+position = Vector2(304, 307.2)
+
+[node name="Stone02" parent="World/Items" instance=ExtResource("stone")]
+position = Vector2(496, 384)
+
+[node name="Stone03" parent="World/Items" instance=ExtResource("stone")]
+position = Vector2(144, 432)
+
+[node name="Exit" parent="World" instance=ExtResource("exit")]
+position = Vector2(937.6, 616)
+
+[node name="PatrolPoints" type="Node2D" parent="World"]
+
+[node name="P1" type="Marker2D" parent="World/PatrolPoints" groups=["patrol_point"]]
+position = Vector2(448, 144)
+
+[node name="P2" type="Marker2D" parent="World/PatrolPoints" groups=["patrol_point"]]
+position = Vector2(800, 256)
+
+[node name="P3" type="Marker2D" parent="World/PatrolPoints" groups=["patrol_point"]]
+position = Vector2(768, 544)
+
+[node name="P4" type="Marker2D" parent="World/PatrolPoints" groups=["patrol_point"]]
+position = Vector2(480, 512)
+
+[node name="P5" type="Marker2D" parent="World/PatrolPoints" groups=["patrol_point"]]
+position = Vector2(192, 416)
+
+[node name="SurvivorSpawns" type="Node2D" parent="World"]
+
+[node name="S1" type="Marker2D" parent="World/SurvivorSpawns" groups=["survivor_spawn"]]
+position = Vector2(230.4, 320)
+
+[node name="S2" type="Marker2D" parent="World/SurvivorSpawns" groups=["survivor_spawn"]]
+position = Vector2(160, 307.2)
+
+[node name="S3" type="Marker2D" parent="World/SurvivorSpawns" groups=["survivor_spawn"]]
+position = Vector2(352, 160)
+
+[node name="KillerSpawns" type="Node2D" parent="World"]
+
+[node name="K1" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(480, 25.6)
+
+[node name="K2" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(934.4, 38.4)
+
+[node name="K3" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(934.4, 320)
+
+[node name="K4" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(25.6, 432)
+
+[node name="K5" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(32, 742.4)
+
+[node name="K6" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(480, 742.4)
+
+[node name="K7" type="Marker2D" parent="World/KillerSpawns" groups=["killer_spawn"]]
+position = Vector2(768, 742.4)
+
+[node name="Actors" type="Node2D" parent="World"]
+
+[node name="Survivor" parent="World/Actors" instance=ExtResource("survivor")]
+position = Vector2(230.4, 320)
+
+[node name="FogRenderer" type="Node2D" parent="."]
+script = ExtResource("fog")
+
+[node name="PerceptionView" type="Node" parent="."]
+script = ExtResource("view")
+
+[node name="DebugOverlay" type="Node2D" parent="."]
+script = ExtResource("debug")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("hud")

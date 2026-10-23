@@ -1,0 +1,36 @@
+; Engine configuration file.
+
+config_version=5
+
+[application]
+
+config/name="Sosnovy Lager Prototype"
+config/description="Сосновый лагерь — первый играбельный прототип"
+run/main_scene="res://scenes/main/forest_test_01.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="doors"
+2d_physics/layer_3="survivor"
+2d_physics/layer_4="killer"
+2d_physics/layer_5="furniture"
+2d_physics/layer_6="bushes"
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
