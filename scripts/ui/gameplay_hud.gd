@@ -138,7 +138,7 @@ func _refresh_inventory() -> void:
 	var inv: Inventory = session.survivor.inventory
 	var parts: Array[String] = []
 	for i in inv.slots.size():
-		var name := "камень" if inv.slots[i] != null else "—"
+		var name: String = inv.slots[i].item_name if inv.slots[i] != null else "—"
 		parts.append(("[%d: %s]" if i == inv.selected else " %d: %s ") % [i + 1, name])
 	_inventory_label.text = "Инвентарь " + " ".join(parts)
 
@@ -197,6 +197,6 @@ func _process(delta: float) -> void:
 	var status := ""
 	if sv.current_locker != null:
 		status = "Вы в шкафу" + (" — выглядываете" if sv.current_locker.is_peeking() else "")
-	elif session.phase == GameSession.Phase.PREPARE and session.exit_zone.contains_survivor():
-		status = "Выход откроется после появления маньяка"
+	elif sv.get_channel_target() == session.exit_gate:
+		status = "Открытие выхода: %.1f / %.0f с" % [pr * GameParams.current().exit_hold_time, GameParams.current().exit_hold_time]
 	_status_label.text = status

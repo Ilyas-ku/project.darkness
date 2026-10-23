@@ -59,7 +59,7 @@ static func sanitize(kind: StringName, source: Vector2, now: float, rng: RandomN
 		obs.approximate_region = null
 		return obs
 	obs.is_nearby_presence = false
-	obs.intensity_band = &"loud" if kind == &"impact" else &"medium"
+	obs.intensity_band = &"loud" if kind == &"impact" or kind == &"glass" else &"medium"
 	var r := GameParams.gu(p.approx_region_radius)
 	var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, r * p.approx_region_offset_ratio)
 	obs.approximate_region = {"center": source + off, "radius": r}

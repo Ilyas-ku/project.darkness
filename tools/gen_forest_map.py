@@ -11,7 +11,7 @@ BUSHES = [(1.5, 6.6, 0.9), (14.5, 6.5, 1.0), (6.5, 15, 1.2), (19.5, 12.5, 1.0), 
 STONES = [(10.5, 9.6), (15.5, 12), (4.5, 13.5)]
 CABIN = (3, 2)
 SHED = (19, 7.5)
-EXIT = (29.3, 19.25)
+EXIT = (29.85, 19.25)
 # Areas of interest: (id, weight, is_house, bounds (x, y, w, h) gu, [(marker name, x, y)])
 # Marker names sort in visiting order; "sweep" = stop and look around, "hide" = consider hiding spots.
 AREAS = [
@@ -46,7 +46,7 @@ SCENES = [
     ("tree", "PackedScene", "res://scenes/world/tree.tscn"),
     ("bush", "PackedScene", "res://scenes/world/bush.tscn"),
     ("stone", "PackedScene", "res://scenes/items/stone.tscn"),
-    ("exit", "PackedScene", "res://scenes/world/exit.tscn"),
+    ("exit", "PackedScene", "res://scenes/world/exit_gate.tscn"),
     ("survivor", "PackedScene", "res://scenes/characters/survivor.tscn"),
 ]
 
@@ -92,7 +92,7 @@ def main():
     node("Items", "Node2D", "World")
     for i, (x, y) in enumerate(STONES, 1):
         node(f"Stone{i:02d}", None, "World/Items", "stone", [f"position = {v(x, y)}"])
-    node("Exit", None, "World", "exit", [f"position = {v(*EXIT)}"])
+    node("ExitGate", None, "World", "exit", [f"position = {v(*EXIT)}"])
     node("AreasOfInterest", "Node2D", "World")
     for aid, w, house, b, markers in AREAS:
         node(aid, "Node2D", "World/AreasOfInterest", props=['script = ExtResource("aoi")', f'area_id = &"{aid}"',

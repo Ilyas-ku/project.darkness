@@ -91,8 +91,8 @@ func test_stone_out_of_view_not_revealed() -> void:
 	stone.interact(sv)
 	check(sv.inventory.count() == 1, "stone picked up")
 	sv.try_throw(g(9, 13))   # behind the survivor, outside the view sector
-	await seconds(1.0)
-	check(stone.state == Throwable.State.LANDED, "stone landed")
+	await seconds(1.6)
+	check(stone.state == Throwable.State.RESTING_PICKABLE, "stone came to rest")
 	check(not stone.visible, "landing point outside view is not revealed (AC-08)")
 
 
@@ -134,7 +134,7 @@ func test_tree_and_stone_decoy() -> void:
 	var investigated := false
 	for i in 60:
 		await physics_frames(1)
-		if stone.state == Throwable.State.LANDED:
+		if stone.state != Throwable.State.FLYING and stone.state != Throwable.State.HELD:
 			await physics_frames(1)
 			investigated = k.brain.state_name() == "INVESTIGATE_SOUND"
 			break

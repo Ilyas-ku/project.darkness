@@ -12,7 +12,7 @@ const KILLER_SCENE := preload("res://scenes/characters/killer.tscn")
 @onready var actors: Node2D = $World/Actors
 @onready var survivor: SurvivorController = $World/Actors/Survivor
 @onready var nav_region: NavigationRegion2D = $World/NavRegion
-@onready var exit_zone: Area2D = $World/Exit
+@onready var exit_gate: StaticBody2D = $World/ExitGate
 @onready var fog: FogRenderer = $FogRenderer
 @onready var perception: PlayerPerceptionView = $PerceptionView
 @onready var hud: CanvasLayer = $HUD
@@ -40,7 +40,7 @@ func _ready() -> void:
 	nav_region.build()
 	fog.setup(params.map_size_px(), GameParams.gu(params.fog_cell_size), params.fog_explored_alpha)
 	perception.setup(survivor, fog)
-	exit_zone.survivor_reached.connect(_on_exit_reached)
+	exit_gate.opened.connect(_on_exit_opened)
 	survivor.health.died.connect(_on_survivor_died)
 	survivor.hearing.heard.connect(_on_survivor_heard)
 	hud.setup(self)
@@ -114,14 +114,18 @@ func spawn_killer() -> void:
 	killer.brain.rng.seed = seed_used + 7
 	killer.hearing.rng.seed = seed_used + 13
 	killer.brain.activate()
-	exit_zone.active = true
 	phase = Phase.ACTIVE
 	print("[session] killer spawned at %s (gu)" % str(p / GameParams.PX_PER_GU))
 
 
-func _on_exit_reached() -> void:
-	if phase == Phase.ACTIVE:
-		_finish(Phase.ESCAPED)
+func _on_exit_opened() -> void:
+	if is_finished():
+		return
+	phase = Phase.ESCAPED
+	survivor.input_enabled = false
+	# short gate animation before the result screen
+	await get_tree().create_timer(0.6).timeout
+	_finish(Phase.ESCAPED)
 
 
 func _on_survivor_died() -> void:

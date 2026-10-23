@@ -15,7 +15,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/tree.tscn" id="tree"]
 [ext_resource type="PackedScene" path="res://scenes/world/bush.tscn" id="bush"]
 [ext_resource type="PackedScene" path="res://scenes/items/stone.tscn" id="stone"]
-[ext_resource type="PackedScene" path="res://scenes/world/exit.tscn" id="exit"]
+[ext_resource type="PackedScene" path="res://scenes/world/exit_gate.tscn" id="exit"]
 [ext_resource type="PackedScene" path="res://scenes/characters/survivor.tscn" id="survivor"]
 
 [node name="ForestTest01" type="Node2D"]
@@ -135,8 +135,8 @@ position = Vector2(496, 384)
 [node name="Stone03" parent="World/Items" instance=ExtResource("stone")]
 position = Vector2(144, 432)
 
-[node name="Exit" parent="World" instance=ExtResource("exit")]
-position = Vector2(937.6, 616)
+[node name="ExitGate" parent="World" instance=ExtResource("exit")]
+position = Vector2(955.2, 616)
 
 [node name="AreasOfInterest" type="Node2D" parent="World"]
 

@@ -23,6 +23,10 @@ func _run() -> void:
 			if only != "" and not file.contains(only):
 				continue
 			var script: GDScript = load(file)
+			if script == null or not script.can_instantiate():
+				failed += 1
+				print("FAIL ", file.get_file(), " (script failed to load)")
+				continue
 			for m in script.get_script_method_list():
 				var name: String = m.name
 				if not name.begins_with("test_"):
