@@ -48,6 +48,7 @@ var _search_point := Vector2.ZERO
 var _search_point_valid := false
 var _search_bias := Vector2.ZERO
 var _search_locker: Node = null
+var _investigate_locker: Node = null
 var _hiding_target: Node = null
 var _hiding_opened := false
 var _footsteps_check_time := -INF
@@ -485,6 +486,15 @@ func _tick_last_seen() -> void:
 func _tick_investigate(delta: float) -> void:
 	if motor.is_busy():
 		return
+	if _investigate_locker != null and is_instance_valid(_investigate_locker):
+		var sp: Vector2 = _investigate_locker.get_search_position()
+		motor.move_to(sp)
+		if motor.global_position.distance_to(sp) <= GameParams.gu(0.35):
+			motor.start_open_locker(_investigate_locker)
+			_investigate_locker = null
+		elif motor.stuck or state_time > params.investigate_timeout:
+			_investigate_locker = null
+		return
 	if _wait_left > 0.0:
 		var radio := _radio_to_silence()
 		if radio != null:
@@ -538,6 +548,13 @@ func _tick_search(delta: float, now: float) -> void:
 
 func _begin_investigate(s: Observation.HeardObservation) -> void:
 	investigate_region = {"center": s.region_center(), "radius": s.region_radius()}
+	# a heard locker creak is a fresh signal: open a locker inside the heard area
+	# (decided from the sound, never from the locker's occupancy)
+	_investigate_locker = null
+	if s.kind == &"locker" or s.kind == &"locker_close":
+		for l in get_tree().get_nodes_in_group(&"locker"):
+			if l.global_position.distance_to(s.region_center()) <= s.region_radius() + GameParams.gu(0.5):
+				_investigate_locker = l
 	var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, s.region_radius())
 	investigate_point = _closest_nav_point(s.region_center() + off)
 	_change(S.INVESTIGATE_SOUND, "heard %s" % s.kind)

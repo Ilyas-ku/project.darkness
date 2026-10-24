@@ -7,6 +7,8 @@ extends StaticBody2D
 @export var thickness_gu := 0.3
 
 var _shape: CollisionShape2D
+## Actor currently climbing through (the opening fits one body at a time).
+var vaulting: Node = null
 
 
 func _ready() -> void:
@@ -28,6 +30,8 @@ func get_normal() -> Vector2:
 
 ## Returns {"ok": bool, "from": Vector2, "to": Vector2, "reason": String} for moving actor across.
 func plan_vault(actor: Node2D, radius_px: float) -> Dictionary:
+	if vaulting != null and is_instance_valid(vaulting) and vaulting != actor:
+		return {"ok": false, "from": actor.global_position, "to": actor.global_position, "reason": "проём занят"}
 	var n := get_normal()
 	var side := signf(n.dot(actor.global_position - global_position))
 	if side == 0.0:
@@ -49,7 +53,17 @@ func plan_vault(actor: Node2D, radius_px: float) -> Dictionary:
 	return {"ok": true, "from": from, "to": to, "reason": ""}
 
 
+func begin_vault(actor: Node) -> void:
+	vaulting = actor
+
+
+func end_vault(actor: Node) -> void:
+	if vaulting == actor:
+		vaulting = null
+
+
 func on_vaulted(actor: Node) -> void:
+	end_vault(actor)
 	SoundEventBus.emit(&"window", global_position, GameParams.current().window_sound_radius, actor.get_instance_id())
 
 
@@ -84,6 +98,14 @@ func can_start(actor: Node) -> bool:
 
 func interact(_actor: Node) -> void:
 	pass  # movement is performed by the actor's channel (start_vault)
+
+
+func on_channel_started(actor: Node) -> void:
+	begin_vault(actor)
+
+
+func on_channel_cancelled(actor: Node, _reason: String) -> void:
+	end_vault(actor)
 
 
 func _draw() -> void:

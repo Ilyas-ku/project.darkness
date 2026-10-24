@@ -269,6 +269,7 @@ func _start_passage_action(dir: Vector2) -> bool:
 		_look_dir = dir
 		velocity = Vector2.ZERO
 		_shape.set_deferred(&"disabled", true)
+		obj.begin_vault(self)
 		_action = {"kind": &"window", "left": params.window_vault_time, "total": params.window_vault_time,
 			"object": obj, "from": global_position, "to": plan.to}
 		return true

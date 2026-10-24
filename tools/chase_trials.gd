@@ -14,6 +14,8 @@ const LIMIT := 45.0
 var s: GameSession
 var sv: SurvivorController
 var log_lines: Array[String] = []
+var verbose := false
+var only := -1
 
 
 func _initialize() -> void:
@@ -40,14 +42,16 @@ func scenarios() -> Array:
 			"steps": [{"go": Vector2(19.5, 12.5), "sprint": true}, {"wait": 40.0}]},
 		{"name": "06 bush: run through a bush without stopping", "sv": Vector2(17.0, 12.5), "k": Vector2(14.0, 12.5),
 			"steps": [{"go": Vector2(19.5, 12.5), "sprint": true}, {"go": Vector2(22.0, 8.5), "sprint": true}, {"go": Vector2(26.0, 5.0)}]},
-		{"name": "07 house: door, close it behind, window, bush", "sv": Vector2(9.2, 10.4), "k": Vector2(13.2, 11.2), "open": ["InnerDoor"],
+		{"name": "07 house: door, close it behind, window, sprint to a far bush", "sv": Vector2(9.2, 10.4), "k": Vector2(13.2, 11.2), "open": ["InnerDoor"],
 			"steps": [{"go": Vector2(9.2, 8.9), "sprint": true}, {"press": "FrontDoor"}, {"go": Vector2(9.2, 6.6), "sprint": true}, {"press": "FrontDoor"},
-				{"go": Vector2(7.6, 5.0), "sprint": true}, {"go": W, "sprint": true}, {"vault": true}, {"go": Vector2(1.5, 6.6), "sprint": true}, {"wait": 30.0}]},
+				{"go": Vector2(7.6, 5.0), "sprint": true}, {"go": W, "sprint": true}, {"vault": true}, {"go": Vector2(2.4, 10.0), "sprint": true},
+				{"go": Vector2(6.5, 15.0), "sprint": true}, {"wait": 30.0}]},
 		{"name": "08 house: door, hide in the locker", "sv": Vector2(9.2, 10.4), "k": Vector2(13.2, 11.2), "open": ["InnerDoor"],
 			"steps": [{"go": Vector2(9.2, 8.9), "sprint": true}, {"press": "FrontDoor"}, {"go": Vector2(9.2, 6.6), "sprint": true}, {"press": "FrontDoor"},
 				{"go": Vector2(7.6, 5.0), "sprint": true}, {"go": Vector2(4.2, 3.6), "sprint": true}, {"locker": true}, {"wait": 40.0}]},
-		{"name": "09 window first: vault out, sprint to the west woods, sneak", "sv": Vector2(6.0, 5.0), "k": Vector2(9.0, 6.4), "open": ["InnerDoor", "FrontDoor"],
-			"steps": [{"go": W, "sprint": true}, {"vault": true}, {"go": Vector2(2.0, 11.0), "sprint": true}, {"go": Vector2(3.5, 19.0), "careful": true}, {"go": Vector2(6.0, 22.5), "careful": true}]},
+		{"name": "09 window first: vault out, sprint through the west woods", "sv": Vector2(6.0, 5.0), "k": Vector2(9.0, 6.4), "open": ["InnerDoor", "FrontDoor"],
+			"steps": [{"go": W, "sprint": true}, {"vault": true}, {"go": Vector2(2.0, 11.0), "sprint": true}, {"go": Vector2(3.6, 19.5), "sprint": true},
+				{"go": Vector2(8.0, 22.6)}, {"go": Vector2(12.0, 19.5), "careful": true}]},
 		{"name": "10 house corners: circle the house outside", "sv": Vector2(11.8, 9.0), "k": Vector2(14.5, 10.5),
 			"steps": [{"go": Vector2(11.8, 1.2), "sprint": true}, {"go": Vector2(2.2, 1.2), "sprint": true}, {"go": Vector2(2.2, 9.0), "sprint": true}, {"go": Vector2(6.5, 15.0)}, {"wait": 30.0}]},
 	]
@@ -71,10 +75,17 @@ func _load(seed: int) -> void:
 
 
 func _run() -> void:
+	for a in OS.get_cmdline_user_args():
+		if a == "--verbose":
+			verbose = true
+		elif a.begins_with("--only="):
+			only = int(a.get_slice("=", 1))
 	var results := {"CAUGHT": 0, "ESCAPED": 0, "UNRESOLVED": 0}
 	var i := 0
 	for sc in scenarios():
 		i += 1
+		if only > 0 and i != only:
+			continue
 		await _load(100 + i)
 		var r := await _trial(sc)
 		results[r.outcome] += 1
@@ -134,10 +145,10 @@ func _trial(sc: Dictionary) -> Dictionary:
 				var win: Node2D = cabin.get_node("Window")
 				inp = {"move": Vector2.ZERO, "aim": win.global_position, "interact_held": true}
 				if sv.get_channel_target() == null:
-					if sv.focus == win and sv.try_interact():
-						pass
-					elif sv.global_position.x < win.global_position.x:
-						idx += 1   # already outside
+					if sv.global_position.x < win.global_position.x - GameParams.gu(0.2):
+						idx += 1   # outside: vault done
+					elif sv.focus == win:
+						sv.try_interact()
 				# channel in progress: keep holding
 			elif st.has("locker"):
 				var locker: Node = cabin.get_node("Locker")
@@ -157,6 +168,8 @@ func _trial(sc: Dictionary) -> Dictionary:
 		sv.scripted_input = inp
 		await physics_frame
 		t += 1.0 / 60.0
+		if verbose and int(t * 60) % 60 == 0:
+			print("        t=%.0f step=%d sv=%s k=%s state=%s vis=%s ch=%s" % [t, idx, str((sv.global_position / 32).snapped(Vector2(0.1, 0.1))), str((s.killer.global_position / 32).snapped(Vector2(0.1, 0.1))), brain.display_state(), brain.memory.has_visual, sv.get_channel_target()])
 		var bs: String = brain.state_name()
 		if brain.memory.has_visual:
 			last_seen_t = t
