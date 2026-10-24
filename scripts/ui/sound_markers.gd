@@ -68,6 +68,6 @@ func _draw() -> void:
 		# soft uncertainty disc made of concentric translucent rings
 		for i in 6:
 			var rr: float = m.radius * (1.0 - i * 0.15)
-			draw_circle(m.center, rr, Color(col, 0.035 * a))
+			draw_circle(m.center, rr, Color(col, 0.05 * a))
 		var ph := fmod(_t * 1.3, 1.0)
-		draw_arc(m.center, m.radius * (0.35 + 0.65 * ph), 0, TAU, 40, Color(col, 0.35 * a * (1.0 - ph)), 1.5)
+		draw_arc(m.center, m.radius * (0.35 + 0.65 * ph), 0, TAU, 40, Color(col, 0.5 * a * (1.0 - ph)), 2.0)

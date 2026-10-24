@@ -1,0 +1,68 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS test_ai_memory.gd::test_last_seen_not_updated_without_observation
+PASS test_ai_memory.gd::test_sound_cooldown_same_area
+PASS test_ai_memory.gd::test_footsteps_do_not_create_target
+PASS test_exploration_memory.gd::test_dynamic_not_renderable_when_explored
+PASS test_exploration_memory.gd::test_visible_becomes_explored
+PASS test_heard_observation.gd::test_footsteps_region_is_approximate_and_anonymous
+PASS test_heard_observation.gd::test_impact_region_contains_source
+PASS test_movement_stamina.gd::test_diagonal_not_faster
+PASS test_movement_stamina.gd::test_stamina_drain_and_regen
+PASS test_vision_sector.gd::test_inside_sector
+PASS test_vision_sector.gd::test_outside_sector
+PASS test_vision_sector.gd::test_range_modifier
+PASS test_bushes_03.gd::test_t08_stationary_in_bush_much_harder_than_open
+PASS test_bushes_03.gd::test_t09_entered_bush_goes_last_seen_without_tracking
+PASS test_bushes_03.gd::test_t10_t13_rustle_by_gait
+PASS test_bushes_03.gd::test_t14_killer_hears_rustle_only_as_region
+PASS test_doors_03.gd::test_t15_press_e_while_running_door_opens_without_stopping
+PASS test_doors_03.gd::test_t16_double_press_does_not_flicker
+PASS test_doors_03.gd::test_t17_killer_opens_door_with_same_fast_logic
+PASS test_exit_and_items.gd::test_t10_progress_visible_and_win_only_after_full_hold
+PASS test_exit_and_items.gd::test_t11_release_resets_progress
+PASS test_exit_and_items.gd::test_t11_hit_resets_progress
+PASS test_exit_and_items.gd::test_t12_stone_thrown_and_picked_10_times
+PASS test_exit_and_items.gd::test_stone_hits_wall_once_and_stays_in_bounds
+PASS test_hearing_03.gd::test_t01_t02_closet_hears_real_steps_and_stays_hidden
+PASS test_hearing_03.gd::test_t03_steps_behind_wall_heard_muffled_killer_unseen
+PASS test_hearing_03.gd::test_t04_left_then_right_pan_and_marker_follow
+PASS test_hearing_03.gd::test_t05_range_and_door
+PASS test_hearing_03.gd::test_t20_debug_chain_event_audible_voice_marker
+PASS test_house_and_combat.gd::test_t02_t04_killer_searches_house_and_finds_locker
+PASS test_house_and_combat.gd::test_t03_empty_locker_is_checked_and_decision_ignores_occupancy
+PASS test_house_and_combat.gd::test_t07_two_hits_then_finisher
+PASS test_house_and_combat.gd::test_t08_no_hit_through_wall_or_locker
+PASS test_killer_perception.gd::test_seen_then_behind_wall_goes_last_seen
+PASS test_killer_perception.gd::test_long_search_returns_to_patrol
+PASS test_killer_perception.gd::test_sound_does_not_break_visible_chase
+PASS test_killer_perception.gd::test_impact_triggers_investigate_region
+PASS test_killer_perception.gd::test_footsteps_give_only_an_approximate_region
+PASS test_level_interactions.gd::test_t15_window_vault_and_killer_route
+PASS test_level_interactions.gd::test_t16_push_crate_changes_navigation_and_makes_noise
+PASS test_level_interactions.gd::test_t16_doors_change_los_and_passage
+PASS test_level_interactions.gd::test_radio_distracts_and_killer_switches_it_off
+PASS test_level_interactions.gd::test_bottle_breaks_with_loud_sound
+PASS test_level_interactions.gd::test_t19_restart_resets_state
+PASS test_routes.gd::test_t20_three_trajectories_house_to_exit
+PASS test_routes.gd::test_t20_house_rooms_shed_and_window_side
+PASS test_routes.gd::test_t17_unseen_room_is_not_updated
+PASS test_sound_sources_03.gd::test_t06_t07_two_independent_rhythms_then_one
+PASS test_sound_sources_03.gd::test_t18_situational_events_really_play
+PASS test_acceptance.gd::test_locker_hides_and_peek_exposes
+PASS test_acceptance.gd::test_door_change_unseen_is_not_shown
+PASS test_acceptance.gd::test_stone_out_of_view_not_revealed
+PASS test_acceptance.gd::test_explored_area_hides_dynamic_objects
+PASS test_acceptance.gd::test_debug_toggle
+PASS test_acceptance.gd::test_tree_and_stone_decoy
+PASS test_acceptance.gd::test_stone_into_shed_impacts_at_contact
+PASS test_main_scene.gd::test_prepare_timer_and_spawn
+PASS test_main_scene.gd::test_exit_escaped_and_restart
+PASS test_main_scene.gd::test_caught
+PASS test_main_scene.gd::test_t09_running_through_exit_does_not_win
+
+60 passed, 0 failed
+WARNING: 10 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

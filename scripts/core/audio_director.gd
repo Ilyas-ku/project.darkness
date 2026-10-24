@@ -65,7 +65,8 @@ static func ensure_buses() -> void:
 		AudioServer.set_bus_send(i, spec[1])
 		if String(spec[0]).ends_with("Muffled"):
 			var lp := AudioEffectLowPassFilter.new()
-			lp.cutoff_hz = p.muffle_cutoff_hz
+			# events (glass, impacts) keep more of their bright attack through a wall than steps
+			lp.cutoff_hz = p.muffle_cutoff_hz * (3.2 if spec[0] == "SFXMuffled" else 1.0)
 			AudioServer.add_bus_effect(i, lp)
 			AudioServer.set_bus_volume_db(i, -2.0)
 	# Limit peaks on the master bus.
@@ -172,7 +173,7 @@ func _voice(key: StringName, pos: Vector2, db: float, bus: String, pitch_jitter 
 	p.pitch_scale = _rng.randf_range(1.0 - pitch_jitter, 1.0 + pitch_jitter)
 	p.attenuation = 0.0
 	p.max_distance = 100000.0
-	p.panning_strength = 1.0
+	p.panning_strength = 2.0   # project default 2D panning is only 0.5
 	p.bus = StringName(bus)
 	p.global_position = pos
 	add_child(p)

@@ -5,13 +5,13 @@
         11.7s finished area exit_path
         11.7s TRAVEL_TO_POI -> PATROL: area done
         11.7s PATROL -> TRAVEL_TO_POI: least recently visited (clearing)
-02 open: zigzag on the clearing -> CAUGHT at 8.8s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 5, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+02 open: zigzag on the clearing -> CAUGHT at 8.8s | hits ["WOUNDED@1.4s", "DOWNED@8.8s"], LOS breaks 5, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
          6.8s LOCAL_SEARCH -> LOCAL_SEARCH: noticed blood trace
          8.0s LOCAL_SEARCH -> CHASE: victim visible
          8.6s CHASE -> ATTACK: victim in attack range (1.06 gu)
          8.9s attack hit
          8.9s ATTACK -> CHASE: attack hit, recovery
-03 trees: loop the east tree group, then sneak north -> CAUGHT at 4.4s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 1, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+03 trees: loop the east tree group, then sneak north -> CAUGHT at 4.4s | hits ["WOUNDED@3.0s", "DOWNED@4.4s"], LOS breaks 1, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
          3.2s attack hit
          3.2s ATTACK -> CHASE: attack hit, recovery
          4.2s CHASE -> ATTACK: victim in attack range (0.53 gu)
@@ -29,31 +29,31 @@
         10.3s finished area house_back
         10.3s TRAVEL_TO_POI -> PATROL: area done
         10.3s PATROL -> TRAVEL_TO_POI: least recently visited (house)
-06 bush: run through a bush without stopping -> CAUGHT at 4.6s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 1, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+06 bush: run through a bush without stopping -> CAUGHT at 4.6s | hits ["WOUNDED@3.3s", "DOWNED@4.6s"], LOS breaks 1, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
          3.4s attack hit
          3.4s ATTACK -> CHASE: attack hit, recovery
          4.4s CHASE -> ATTACK: victim in attack range (0.25 gu)
          4.7s attack hit
          4.7s ATTACK -> CHASE: attack hit, recovery
-07 house: door, close it behind, window, sprint to a far bush -> CAUGHT at 6.7s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 3, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+07 house: door, close it behind, window, sprint to a far bush -> CAUGHT at 6.7s | hits ["WOUNDED@3.0s", "DOWNED@6.7s"], LOS breaks 3, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
          5.5s GO_TO_LAST_SEEN -> LOCAL_SEARCH: reached last seen position
          6.5s LOCAL_SEARCH -> CHASE: victim visible
          6.5s CHASE -> ATTACK: victim in attack range (0.50 gu)
          6.8s attack hit
          6.8s ATTACK -> CHASE: attack hit, recovery
-08 house: door, hide in the locker -> CAUGHT at 5.6s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 1, combat { "attacks_started": 3, "attacks_hit": 2, "attacks_whiffed": 1, "whiff_reasons": { "no_target_in_reach": 1 }, "finishes": 0, "finish_interrupted": 0 }
+08 house: door, hide in the locker -> CAUGHT at 5.6s | hits ["WOUNDED@4.3s", "DOWNED@5.6s"], LOS breaks 1, combat { "attacks_started": 3, "attacks_hit": 2, "attacks_whiffed": 1, "whiff_reasons": { "no_target_in_reach": 1 }, "finishes": 0, "finish_interrupted": 0 }
          4.4s attack hit
          4.4s ATTACK -> CHASE: attack hit, recovery
          5.4s CHASE -> ATTACK: victim in attack range (0.29 gu)
          5.8s attack hit
          5.8s ATTACK -> CHASE: attack hit, recovery
-09 window first: vault out, sprint through the west woods -> CAUGHT at 8.3s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 1, combat { "attacks_started": 3, "attacks_hit": 2, "attacks_whiffed": 1, "whiff_reasons": { "no_target_in_reach": 1 }, "finishes": 0, "finish_interrupted": 0 }
+09 window first: vault out, sprint through the west woods -> CAUGHT at 8.3s | hits ["WOUNDED@6.9s", "DOWNED@8.3s"], LOS breaks 1, combat { "attacks_started": 3, "attacks_hit": 2, "attacks_whiffed": 1, "whiff_reasons": { "no_target_in_reach": 1 }, "finishes": 0, "finish_interrupted": 0 }
          7.1s attack hit
          7.1s ATTACK -> CHASE: attack hit, recovery
          8.1s CHASE -> ATTACK: victim in attack range (0.44 gu)
          8.4s attack hit
          8.4s ATTACK -> CHASE: attack hit, recovery
-10 house corners: circle the house outside -> CAUGHT at 9.1s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 5, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+10 house corners: circle the house outside -> CAUGHT at 9.1s | hits ["WOUNDED@7.7s", "DOWNED@9.1s"], LOS breaks 5, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
          7.8s attack hit
          7.8s ATTACK -> CHASE: attack hit, recovery
          8.9s CHASE -> ATTACK: victim in attack range (0.23 gu)

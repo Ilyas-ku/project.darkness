@@ -1,6 +1,6 @@
 # ASSETS — графика и звук Prototype 0.2
 
-Все ассеты **оригинальные**: созданы программно скриптом `tools/gen_assets.py`
+Все ассеты, в том числе 13 новых звуков Prototype 0.3, **оригинальные**: созданы программно скриптом `tools/gen_assets.py`
 (Python 3 + Pillow + numpy, фиксированные seed — результат воспроизводим).
 Внешних картинок, звуков, шрифтов и сетевых ресурсов нет; генератор изображений
 не использовался.
@@ -36,6 +36,13 @@
 | `audio/stone_impact.wav`, `glass_break.wav` | удар камня, бутылка | `audio_director.gd` |
 | `audio/attack_swing.wav`, `attack_hit.wav` | атака | `audio_director.gd` |
 | `audio/radio_loop.wav`, `night_ambience.wav` | радио, ночной фон | `audio_director.gd` |
+| `audio/step_dirt_0..1.wav`, `step_wood_1.wav` | шаги по тропе и полу (0.3) | `audio_director.gd` |
+| `audio/rustle_0..2.wav` | шорох кустов, три интенсивности (0.3) | `audio_director.gd` |
+| `audio/door_open.wav`, `door_close.wav` | открытие и закрытие двери (0.3) | `audio_director.gd` |
+| `audio/locker_close.wav` | створка шкафа (0.3) | `audio_director.gd` |
+| `audio/throw_whoosh.wav` | бросок (0.3) | `audio_director.gd` |
+| `audio/wound_cry.wav`, `body_fall.wav` | ранение, падение (0.3) | `audio_director.gd` |
+| `audio/gate_latch.wav` | задвижка выхода в начале удержания (0.3) | `audio_director.gd` |
 
 Свет — `PointLight2D` с радиальной текстурой, создаваемой в коде (`Art.light_texture()`),
 и `CanvasModulate` с ночным тоном (`GameParams.night_tint`).

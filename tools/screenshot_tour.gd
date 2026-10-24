@@ -114,4 +114,46 @@ func _run() -> void:
 	for i in 4:
 		await physics_frame
 	await _snap("4_exit_progress_chase")
+	if label.begins_with("0_3") or OS.get_cmdline_user_args().has("--extra"):
+		await _extra_shots()
 	quit()
+
+
+## Prototype 0.3 evidence: survivor in a bush, sound marker behind a wall, marker from a closet.
+func _extra_shots() -> void:
+	sv.cancel_channel("tour")
+	await _load()
+	s.prepare_left = 0.05
+	await _walk(Vector2.ZERO, 0.1, Vector2.RIGHT)
+	s.killer.brain.set_physics_process(false)
+	# 5: stationary in a bush while the killer passes nearby (seen by the player, not by him)
+	sv.global_position = g(6.5, 15.0)
+	await _look(g(6.5, 11.0), 6)
+	s.killer.global_position = g(4.2, 12.6)
+	s.killer.move_to(g(8.8, 12.6))
+	for i in 40:
+		sv.scripted_input = {"move": Vector2.ZERO, "aim": s.killer.global_position}
+		await physics_frame
+	await _snap("5_bush_hide")
+	# 6: steps behind the bedroom wall -> approximate marker, killer itself invisible
+	sv.global_position = g(5.0, 3.2)
+	await _look(g(5.0, 6.5), 4)
+	await _look(g(8.0, 3.0), 4)
+	await _look(g(5.0, 1.0), 4)
+	s.killer.global_position = g(3.0, 1.0)
+	s.killer.move_to(g(9.0, 1.0))
+	for i in 50:
+		await physics_frame
+	await _snap("6_sound_marker_wall")
+	# 7: inside the closet, the killer walks through the bedroom
+	s.killer.stop()
+	var locker: Node = get_first_node_in_group(&"cabin").get_node("Locker")
+	sv.global_position = locker.get_exit_position()
+	await physics_frame
+	locker.interact(sv)
+	get_first_node_in_group(&"cabin").get_node("InnerDoor").set_open(true, null)
+	s.killer.global_position = g(7.8, 5.2)
+	s.killer.move_to(g(4.4, 4.4))
+	for i in 55:
+		await physics_frame
+	await _snap("7_closet_marker")

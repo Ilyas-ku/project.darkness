@@ -113,7 +113,8 @@ func _trial(sc: Dictionary) -> Dictionary:
 	var los_breaks := 0
 	var prev_state := ""
 	var hits: Array[String] = []
-	sv.health.state_changed.connect(func(_o, n): hits.append("%s@%.1fs" % [HealthComponent.HState.keys()[n], t]))
+	var clock := [0.0]   # captured by reference in the lambda
+	sv.health.state_changed.connect(func(_o, n): hits.append("%s@%.1fs" % [HealthComponent.HState.keys()[n], clock[0]]))
 	var steps: Array = sc.steps
 	var idx := 0
 	var path := PackedVector2Array()
@@ -168,6 +169,7 @@ func _trial(sc: Dictionary) -> Dictionary:
 		sv.scripted_input = inp
 		await physics_frame
 		t += 1.0 / 60.0
+		clock[0] = t
 		if verbose and int(t * 60) % 60 == 0:
 			print("        t=%.0f step=%d sv=%s k=%s state=%s vis=%s ch=%s" % [t, idx, str((sv.global_position / 32).snapped(Vector2(0.1, 0.1))), str((s.killer.global_position / 32).snapped(Vector2(0.1, 0.1))), brain.display_state(), brain.memory.has_visual, sv.get_channel_target()])
 		var bs: String = brain.state_name()

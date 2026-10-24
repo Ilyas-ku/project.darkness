@@ -108,7 +108,7 @@ static var _current: GameParams
 ## audible radius (attenuates, never mutes); a listener inside a closet hears slightly less.
 @export var wall_sound_attenuation := 0.6
 @export var closet_sound_attenuation := 0.8
-@export var muffle_cutoff_hz := 900.0
+@export var muffle_cutoff_hz := 1600.0
 ## Approximate sound region shown on the map and given to the AI (gu).
 @export var sound_uncertainty_min := 1.5
 @export var sound_uncertainty_max := 3.0
