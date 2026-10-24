@@ -197,14 +197,11 @@ func _physics_process(delta: float) -> void:
 		if now - s.timestamp <= params.sound_fresh_window:
 			_begin_investigate(s)
 
-	# 4. Unlocalized footsteps only allow a cautious check around the killer's own position.
-	if memory.footsteps_fresh(now, params.footsteps_fresh_window) and now - _footsteps_check_time >= params.sound_recheck_cooldown:
-		if state == S.PATROL or state == S.TRAVEL_TO_POI or state == S.SWEEP_INTERIOR:
-			_footsteps_check_time = now
-			_begin_search(motor.global_position, params.footsteps_search_radius, "footsteps nearby: local check", false)
-		elif state == S.LOCAL_SEARCH:
-			_footsteps_check_time = now
-			_search_info_time = now
+	# 4. Footsteps (approximate region, handled as a sound above) also keep a search alive.
+	if state == S.LOCAL_SEARCH and memory.footsteps_fresh(now, params.footsteps_fresh_window) \
+			and now - _footsteps_check_time >= params.sound_recheck_cooldown:
+		_footsteps_check_time = now
+		_search_info_time = now
 
 	match state:
 		S.PATROL:

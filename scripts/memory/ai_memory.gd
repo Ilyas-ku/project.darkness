@@ -59,8 +59,9 @@ func ingest_vision(obs: Observation.ObservedVictim, now: float) -> void:
 ## Returns true if the observation was accepted as new information.
 func ingest_heard(h: Observation.HeardObservation, now: float) -> bool:
 	heard_count += 1
-	if not h.is_localizable():
+	if h.kind == &"footsteps":
 		footsteps_heard_time = now
+	if not h.is_localizable():
 		return true
 	_recent_sounds = _recent_sounds.filter(func(r): return now - r.time < sound_recheck_cooldown)
 	for r in _recent_sounds:

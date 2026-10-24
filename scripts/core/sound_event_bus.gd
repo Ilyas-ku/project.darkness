@@ -1,8 +1,10 @@
 class_name SoundEventBus
 extends Node
-## World-side sound propagation. A SoundEvent knows the exact source position and
-## emitter for physics/debug purposes; listeners never see it directly. Each
-## HearingSensor converts it into a sanitized Observation.HeardObservation.
+## World-side sound delivery. A SoundEvent knows the exact source position, emitter
+## and surface for propagation / playback / debug; listeners never get those fields.
+## For every listener the Acoustics verdict is computed ONCE and handed to its
+## HearingSensor, which builds the sanitized Observation.HeardObservation
+## (PerceivedSound) used by the speaker, the map marker and the AI alike.
 
 signal sound_emitted(event: SoundEvent)
 
@@ -13,6 +15,9 @@ class SoundEvent:
 	var radius_px: float
 	var emitter_id: int
 	var time: float
+	var material: StringName = &""
+	var speed := 0.0
+	var gait: StringName = &""
 
 static var _cached: SoundEventBus
 
@@ -45,8 +50,8 @@ func unregister_listener(sensor: Object) -> void:
 	_listeners.erase(sensor)
 
 
-## Emits a sound into the world. radius_gu is the audibility radius (MVP table).
-func emit_sound(kind: StringName, source: Vector2, radius_gu: float, emitter_id: int) -> SoundEvent:
+## Emits a sound into the world. radius_gu is the base audibility radius in the open.
+func emit_sound(kind: StringName, source: Vector2, radius_gu: float, emitter_id: int, extra: Dictionary = {}) -> SoundEvent:
 	var ev := SoundEvent.new()
 	ev.id = _next_id
 	_next_id += 1
@@ -55,7 +60,11 @@ func emit_sound(kind: StringName, source: Vector2, radius_gu: float, emitter_id:
 	ev.radius_px = GameParams.gu(radius_gu)
 	ev.emitter_id = emitter_id
 	ev.time = GameClock.now()
+	ev.material = extra.get("material", &"")
+	ev.speed = extra.get("speed", 0.0)
+	ev.gait = extra.get("gait", &"")
 	var p := GameParams.current()
+	var space := get_viewport().world_2d.direct_space_state if is_inside_tree() else null
 	for l in _listeners.duplicate():
 		if not is_instance_valid(l):
 			_listeners.erase(l)
@@ -63,29 +72,17 @@ func emit_sound(kind: StringName, source: Vector2, radius_gu: float, emitter_id:
 		if l.get_listener_id() == emitter_id:
 			continue
 		var lp: Vector2 = l.get_listener_position()
-		var r: float = ev.radius_px * l.get_hearing_multiplier()
-		var walls := _walls_between(source, lp)
-		if kind == &"footsteps" and walls:
-			r *= p.footsteps_wall_attenuation
-		var d := lp.distance_to(source)
-		if d <= r:
-			l.receive_sound(ev, d, r, walls)
-		elif kind == &"footsteps":
-			l.note_footsteps(false, "out of hearing range", d, r, walls)
+		if source.distance_to(lp) > ev.radius_px * l.get_hearing_multiplier():
+			l.receive_sound(ev, Acoustics.evaluate(ev.radius_px, source, lp, 0, l.is_listener_hidden(), l.get_hearing_multiplier(), p))
+			continue
+		var occ := Acoustics.count_occluders(space, source, lp, l.get_listener_exclude())
+		l.receive_sound(ev, Acoustics.evaluate(ev.radius_px, source, lp, occ, l.is_listener_hidden(), l.get_hearing_multiplier(), p))
 	sound_emitted.emit(ev)
 	return ev
 
 
-func _walls_between(a: Vector2, b: Vector2) -> bool:
-	var space := get_viewport().world_2d.direct_space_state if is_inside_tree() else null
-	if space == null:
-		return false
-	var q := PhysicsRayQueryParameters2D.create(a, b, GameParams.LOS_MASK)
-	return not space.intersect_ray(q).is_empty()
-
-
 ## Convenience used by emitters; silently does nothing without a bus (unit tests).
-static func emit(kind: StringName, source: Vector2, radius_gu: float, emitter_id: int) -> void:
+static func emit(kind: StringName, source: Vector2, radius_gu: float, emitter_id: int, extra: Dictionary = {}) -> void:
 	var bus := instance()
 	if bus != null:
-		bus.emit_sound(kind, source, radius_gu, emitter_id)
+		bus.emit_sound(kind, source, radius_gu, emitter_id, extra)

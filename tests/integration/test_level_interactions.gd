@@ -28,41 +28,6 @@ func _cabin() -> Node:
 	return tree.get_first_node_in_group(&"cabin")
 
 
-func test_t13_t14_footsteps_presence_only_and_rules() -> void:
-	s.spawn_killer_at(g(2.5, 1.0), Vector2.RIGHT)
-	s.killer.brain.set_physics_process(false)
-	var sv := s.survivor
-	sv.global_position = g(5.0, 3.2)
-	sv.scripted_input = {"move": Vector2.ZERO, "aim": g(5.0, 1.0)}
-	var heard: Array = []
-	sv.hearing.heard.connect(func(o): if o.kind == &"footsteps": heard.append(o))
-	s.killer.move_to(g(8.0, 1.0))
-	await seconds(0.7)
-	check(s.hud.is_footsteps_visible(), "T13: indicator for movement behind the wall")
-	check(heard.size() > 0, "T13: footsteps observation delivered")
-	for o in heard:
-		check(o.approximate_region == null and o.is_nearby_presence, "T13: presence only, no region")
-		check_eq(o.to_dict().keys().size(), 4, "T13: no position/direction/role/count keys")
-	s.killer.stop()
-	await seconds(0.8)
-	check(not s.hud.is_footsteps_visible(), "T14: gone after the killer stops (<= 0.75 s)")
-	# far away
-	s.killer.global_position = g(16, 1.0)
-	s.killer.move_to(g(20, 1.0))
-	await seconds(0.8)
-	check(not s.hud.is_footsteps_visible(), "T14: no indicator when out of range")
-	check_eq(sv.hearing.last_footsteps_diag.get("reason", ""), "out of hearing range", "T14: diagnostic reason out of range")
-	# visible: same distance, in the open, in front of the survivor
-	sv.global_position = g(15, 13)
-	sv.scripted_input = {"move": Vector2.ZERO, "aim": g(18, 13)}
-	s.killer.global_position = g(17, 12)
-	s.killer.move_to(g(17, 15))
-	await seconds(0.8)
-	check(s.perception.killer_perceived, "killer visible")
-	check(not s.hud.is_footsteps_visible(), "T14: no indicator while the source is visible")
-	check_eq(sv.hearing.last_footsteps_diag.get("reason", ""), "source in direct LOS", "T14: diagnostic reason LOS")
-
-
 func test_t15_window_vault_and_killer_route() -> void:
 	var win: Node2D = _cabin().get_node("Window")
 	var sv := s.survivor

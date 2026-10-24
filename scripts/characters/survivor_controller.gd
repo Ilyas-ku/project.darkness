@@ -29,7 +29,6 @@ var focus: Node = null
 
 var _shape: CollisionShape2D
 var _bush_overlaps := 0
-var _step_timer := 0.0
 var _peek_hold := 0.0
 var _blood_timer := 0.0
 ## Active timed interaction: {target, left, total, hold, from?, to?}
@@ -142,13 +141,41 @@ static func footstep_radius(mode: StringName, p: GameParams) -> float:
 	return p.footstep_radius_walk
 
 
-static func footstep_interval(mode: StringName, p: GameParams) -> float:
+## FootstepEmitter contract -----------------------------------------------------
+
+func get_stride_gu(mode: StringName) -> float:
 	match mode:
 		MODE_SPRINT:
-			return p.footstep_interval_sprint
+			return params.stride_sprint
 		MODE_CAREFUL:
-			return p.footstep_interval_careful
-	return p.footstep_interval_walk
+			return params.stride_careful
+	return params.stride_walk
+
+
+func get_footstep_radius_gu(mode: StringName) -> float:
+	return footstep_radius(mode, params)
+
+
+func get_rustle_radius_gu(mode: StringName) -> float:
+	match mode:
+		MODE_SPRINT:
+			return params.rustle_radius_sprint
+		MODE_CAREFUL:
+			return params.rustle_radius_careful
+	return params.rustle_radius_walk
+
+
+func is_in_bush() -> bool:
+	return _bush_overlaps > 0 and current_locker == null
+
+
+## Hearing: hidden in a closet still hears (only muffled).
+func is_hidden_in_spot() -> bool:
+	return current_locker != null
+
+
+func get_hiding_spot_rid() -> RID:
+	return current_locker.get_rid() if current_locker != null else RID()
 
 
 func _read_input() -> Dictionary:
@@ -195,10 +222,7 @@ func _physics_process(delta: float) -> void:
 	velocity = compute_velocity(move, movement_mode, params)
 	move_and_slide()
 	if moving and get_real_velocity().length() > 1.0:
-		_step_timer -= delta
-		if _step_timer <= 0.0:
-			SoundEventBus.emit(&"footsteps", global_position, footstep_radius(movement_mode, params), get_instance_id())
-			_step_timer = footstep_interval(movement_mode, params)
+		# footsteps and bush rustle come from FootstepEmitter (actual travelled distance)
 		if health.state == HealthComponent.HState.WOUNDED:
 			_blood_timer -= delta
 			if _blood_timer <= 0.0:
@@ -206,7 +230,6 @@ func _physics_process(delta: float) -> void:
 				_blood_timer = params.blood_interval
 	else:
 		movement_mode = MODE_IDLE
-		_step_timer = 0.0
 	focus = Interactable.find_best(self, inp.get("aim", global_position))
 
 

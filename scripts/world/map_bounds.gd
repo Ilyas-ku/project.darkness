@@ -16,6 +16,7 @@ var _ground: Texture2D
 
 func _ready() -> void:
 	add_to_group(&"navigation_source")
+	add_to_group(&"map_bounds")
 	collision_layer = GameParams.L_WORLD
 	collision_mask = 0
 	z_index = -10
@@ -46,6 +47,18 @@ func _ready() -> void:
 		add_child(line)
 	_scatter_details.call_deferred()
 	_tree_line()
+
+
+## True if p (world px) is on a dirt path.
+func is_on_path(p: Vector2) -> bool:
+	var half := GameParams.gu(0.65)
+	for path in paths_gu:
+		for i in range(path.size() - 1):
+			var a: Vector2 = path[i] * GameParams.PX_PER_GU
+			var b: Vector2 = path[i + 1] * GameParams.PX_PER_GU
+			if Geometry2D.get_closest_point_to_segment(p, a, b).distance_to(p) <= half:
+				return true
+	return false
 
 
 func _add_rect(r: Rect2) -> void:

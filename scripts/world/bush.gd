@@ -1,11 +1,10 @@
 extends Area2D
-## Noisy bush: passable, partial cover for whoever is inside. Normal walking or
-## sprinting through it emits a "foliage" event (max once per 0.8 s per body);
-## careful movement is silent.
+## Dense bush: passable, visual cover for whoever is inside (VisionSensor applies
+## the movement-based visibility multipliers). Rustle events come from the moving
+## actor's FootstepEmitter; the bush only animates in sync with them.
 
 @export var radius_gu := 1.0
 
-var _last_noise := {}
 var _sprite: Sprite2D
 var _rustle := 0.0
 
@@ -38,24 +37,20 @@ func _on_body_exited(b: Node) -> void:
 		b.bush_exited()
 
 
+func contains_point(p: Vector2) -> bool:
+	return global_position.distance_to(p) <= GameParams.gu(radius_gu)
+
+
+## Leaves move only on a real rustle event (synchronised with the sound).
+func shake(mode: StringName) -> void:
+	_rustle = {&"careful": 0.25, &"walk": 0.4, &"sprint": 0.55}.get(mode, 0.4)
+
+
 func _physics_process(delta: float) -> void:
-	var p := GameParams.current()
-	var now := GameClock.now()
 	var occupied := false
 	for b in get_overlapping_bodies():
 		if b.is_in_group(&"survivor"):
 			occupied = true
-		if not b.has_method(&"get_movement_mode"):
-			continue
-		var mode: StringName = b.get_movement_mode()
-		if mode != &"walk" and mode != &"sprint":
-			continue
-		var id := b.get_instance_id()
-		if now - _last_noise.get(id, -INF) < p.foliage_cooldown:
-			continue
-		_last_noise[id] = now
-		_rustle = 0.4
-		SoundEventBus.emit(&"foliage", b.global_position, p.foliage_radius, id)
 	# The survivor inside sees through the leaves; others see a dense bush.
 	_sprite.modulate.a = 0.55 if occupied else 1.0
 	if _rustle > 0.0:

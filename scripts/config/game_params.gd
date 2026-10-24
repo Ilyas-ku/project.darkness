@@ -74,21 +74,39 @@ static var _current: GameParams
 @export var footstep_radius_walk := 3.0
 @export var footstep_radius_sprint := 4.5
 @export var footstep_radius_careful := 1.3
-@export var footstep_radius_killer := 3.0
-@export var footstep_interval_walk := 0.4
-@export var footstep_interval_sprint := 0.3
-@export var footstep_interval_careful := 0.5
-@export var footstep_interval_killer := 0.4
+## The killer is heavy: his normal walk must be clearly audible on the next path / through a wall.
+@export var footstep_radius_killer := 6.0
+## Footsteps are emitted per actually travelled stride (gu per footfall), with jitter.
+@export var stride_walk := 1.6
+@export var stride_sprint := 2.2
+@export var stride_careful := 1.0
+@export var stride_killer := 1.7
+@export var stride_jitter := 0.06
 @export var impact_radius := 9.0
 @export var door_open_radius := 5.0
-@export var foliage_radius := 4.0
-@export var foliage_cooldown := 0.8
+## Bush rustle (BushRustleEvent) radius by gait; none when standing still.
+@export var rustle_radius_careful := 2.0
+@export var rustle_radius_walk := 3.5
+@export var rustle_radius_sprint := 5.0
+## Rustle cadence: every rustle_stride gu actually moved inside foliage, at most once per rustle_cadence_min s.
+@export var rustle_stride := 0.7
+@export var rustle_cadence_min := 0.28
 @export var approx_region_radius := 2.0
 ## Max offset of the reported region centre from the true source, as a fraction of the radius.
 @export var approx_region_offset_ratio := 0.75
 @export var hud_footsteps_hold := 0.75
-## Footstep audibility multiplier when walls block the line between source and listener (1 = walls do not muffle).
-@export var footsteps_wall_attenuation := 1.0
+## Acoustics: every wall / closed door between source and listener multiplies the
+## audible radius (attenuates, never mutes); a listener inside a closet hears slightly less.
+@export var wall_sound_attenuation := 0.6
+@export var closet_sound_attenuation := 0.8
+@export var muffle_cutoff_hz := 900.0
+## Approximate sound region shown on the map and given to the AI (gu).
+@export var sound_uncertainty_min := 1.5
+@export var sound_uncertainty_max := 3.0
+@export var sound_region_quantum := 1.0
+@export var marker_fade := 1.0
+@export var marker_merge_distance := 1.5
+@export var footstep_voice_limit := 10
 
 @export_group("AI")
 @export var patrol_wait := 0.6

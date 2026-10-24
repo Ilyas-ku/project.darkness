@@ -26,6 +26,8 @@ var killer: KillerMotor = null
 var rng := RandomNumberGenerator.new()
 var seed_used := 0
 var debug_enabled := false
+var sound_markers: SoundMarkers
+var audio: AudioDirector
 
 
 func _ready() -> void:
@@ -64,10 +66,15 @@ func _setup_atmosphere() -> void:
 	var fh := FocusHighlight.new()
 	fh.survivor = survivor
 	$World.add_child(fh)
+	sound_markers = SoundMarkers.new()
+	sound_markers.name = &"SoundMarkers"
+	add_child(sound_markers)
+	sound_markers.setup(survivor)
 	var ad := AudioDirector.new()
 	ad.name = &"AudioDirector"
 	add_child(ad)
 	ad.setup(self)
+	audio = ad
 
 
 func _exit_tree() -> void:
@@ -178,9 +185,9 @@ func _on_footsteps_indicator(shown: bool) -> void:
 		return
 	var d: Dictionary = survivor.hearing.last_footsteps_diag
 	if shown:
-		print("[footsteps] indicator ON: %s (d=%.1f gu, r=%.1f gu, walls=%s)" % [d.get("reason", "?"), d.get("distance_gu", 0.0), d.get("radius_gu", 0.0), d.get("walls", false)])
+		print("[footsteps] marker ON: %s (d=%.1f gu, r=%.1f gu, walls=%s)" % [d.get("reason", "?"), d.get("distance_gu", 0.0), d.get("radius_gu", 0.0), d.get("walls", false)])
 	else:
-		print("[footsteps] indicator OFF: no audible steps for %.2f s (last: %s)" % [params.hud_footsteps_hold, d.get("reason", "?")])
+		print("[footsteps] marker gone: no audible steps for %.2f s (last: %s)" % [params.marker_fade, d.get("reason", "?")])
 
 
 func _finish(result: Phase) -> void:

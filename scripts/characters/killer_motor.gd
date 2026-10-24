@@ -26,7 +26,6 @@ var _repath_left := 0.0
 var _look_dir := Vector2.ZERO
 ## Timed action: {kind, left, total, object, from?, to?}
 var _action := {}
-var _step_timer := 0.0
 var _stuck_timer := 0.0
 var _bush_overlaps := 0
 var _shape: CollisionShape2D
@@ -222,17 +221,23 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		if _look_dir != Vector2.ZERO:
 			_turn_towards(_look_dir, delta)
-	_footsteps(moved, delta)
 
 
-func _footsteps(moved: bool, delta: float) -> void:
-	if moved:
-		_step_timer -= delta
-		if _step_timer <= 0.0:
-			SoundEventBus.emit(&"footsteps", global_position, params.footstep_radius_killer, get_instance_id())
-			_step_timer = params.footstep_interval_killer
-	else:
-		_step_timer = 0.0
+## FootstepEmitter contract (steps come from the actually travelled distance).
+func get_stride_gu(_mode: StringName) -> float:
+	return params.stride_killer
+
+
+func get_footstep_radius_gu(_mode: StringName) -> float:
+	return params.footstep_radius_killer
+
+
+func get_rustle_radius_gu(_mode: StringName) -> float:
+	return params.rustle_radius_walk
+
+
+func is_in_bush() -> bool:
+	return _bush_overlaps > 0
 
 
 func _turn_towards(dir: Vector2, delta: float) -> void:

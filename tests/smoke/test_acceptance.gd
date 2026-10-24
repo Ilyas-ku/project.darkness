@@ -53,22 +53,6 @@ func test_locker_hides_and_peek_exposes() -> void:
 	check(k.vision.scan_group(&"survivor_perceivable", 0.016) != null, "peeking survivor is detectable by LOS (AC-12)")
 
 
-func test_footsteps_behind_wall_presence_only() -> void:
-	s.spawn_killer()
-	_freeze_killer_brain()
-	# Survivor inside the bedroom looking at the north wall; killer walks outside along the north wall.
-	_still(g(5.0, 3.0), g(5.0, 1.0))
-	s.killer.global_position = g(3.5, 1.0)
-	s.killer.move_to(g(9.0, 1.0))
-	await seconds(0.6)
-	check(not s.perception.killer_perceived, "killer not in LOS")
-	check(not s.killer.visual.visible, "killer not drawn")
-	check(s.hud.is_footsteps_visible(), "footstep indicator shown (AC-09)")
-	s.killer.stop()
-	await seconds(0.8)
-	check(not s.hud.is_footsteps_visible(), "indicator gone <= 0.75 s after the steps stop")
-
-
 func test_door_change_unseen_is_not_shown() -> void:
 	var door: Node = tree.get_first_node_in_group(&"cabin").get_node("FrontDoor")
 	_still(g(20, 18), g(25, 18))   # far away, looking away

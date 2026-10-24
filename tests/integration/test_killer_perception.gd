@@ -120,11 +120,13 @@ func test_impact_triggers_investigate_region() -> void:
 	check(reg != null and reg.center.distance_to(src) <= reg.radius, "approximate region contains the impact point")
 
 
-func test_footsteps_only_local_check() -> void:
+func test_footsteps_give_only_an_approximate_region() -> void:
 	await physics_frames(5)
-	var before := killer.global_position
-	SoundEventBus.instance().emit_sound(&"footsteps", killer.global_position + g(1.5, 1.5), 3.0, 0)
+	var src: Vector2 = killer.global_position + g(1.5, 1.5)
+	SoundEventBus.instance().emit_sound(&"footsteps", src, 3.0, 0)
 	await physics_frames(2)
-	check_eq(st(), "LOCAL_SEARCH", "footsteps -> cautious LOCAL_SEARCH")
-	check(killer.brain.search_center.distance_to(before) < GameParams.gu(0.5), "search centred on the killer, not on the source")
-	check(not killer.brain.memory.has_last_seen, "no position learned from footsteps")
+	check_eq(st(), "INVESTIGATE_SOUND", "audible footsteps -> investigate the approximate region")
+	var reg: Variant = killer.brain.investigate_region
+	check(reg != null and reg.center.distance_to(src) <= reg.radius, "region contains the source")
+	check(reg != null and not reg.center.is_equal_approx(src), "region centre is not the exact source")
+	check(not killer.brain.memory.has_last_seen, "no position learned as a sighting")

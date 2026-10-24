@@ -37,6 +37,11 @@ func _process(_delta: float) -> void:
 	lines.append("survivor mode=%s stamina=%.2f concealed=%s locker=%s health=%s" % [sv.movement_mode, sv.stamina.value, sv.is_concealed(), sv.current_locker != null, sv.health.state_name()])
 	for t in sv.health.transitions:
 		lines.append("  health " + t)
+	lines.append("hearing chain (survivor): event -> audible -> voice -> marker")
+	for e in sv.hearing.debug_log.slice(-6):
+		lines.append("  %5.1fs %-9s src#%d %s mat=%s occl=%d %s %s play=%s voice=%s marker=%s" % [
+			e.t, e.event_type, int(e.source_actor) % 10000, "moving" if e.moving else "still", e.material, e.occluders,
+			e.listener_state, ("AUDIBLE" if e.audible else e.reason), e.audio_play_called, e.voice_active, e.marker_spawned])
 	var k: KillerMotor = session.killer
 	if k == null:
 		lines.append("killer: absent (PREPARE)")
@@ -59,6 +64,15 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if session == null:
 		return
+	# hearing debug: real event position (debug only) and the perceived region
+	for e in session.survivor.hearing.debug_log:
+		var rp: Vector2 = e.real_position
+		var col := Color(0.4, 1, 0.5, 0.9) if e.audible else Color(1, 0.35, 0.35, 0.7)
+		draw_line(rp + Vector2(-3, -3), rp + Vector2(3, 3), col, 1.5)
+		draw_line(rp + Vector2(-3, 3), rp + Vector2(3, -3), col, 1.5)
+		if e.region != null:
+			draw_arc(e.region.center, e.region.radius, 0, TAU, 28, Color(0.9, 0.9, 0.6, 0.6), 1.0)
+			draw_line(rp, e.region.center, Color(0.9, 0.9, 0.6, 0.3), 1.0)
 	var k: KillerMotor = session.killer
 	if k == null:
 		return

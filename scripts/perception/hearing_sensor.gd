@@ -1,14 +1,21 @@
 class_name HearingSensor
 extends Node
-## Receives world SoundEvents from the SoundEventBus and turns them into sanitized
-## Observation.HeardObservation records. Footsteps lose all positional data here.
+## HearingPerception for one listener. Gets the Acoustics verdict for every world
+## SoundEvent and, if audible, emits ONE sanitized Observation.HeardObservation
+## (category, approximate region, volume, muffled, surface) — never the source id,
+## role, exact position or a source count. A hidden listener (in a closet) keeps
+## hearing; the closet only muffles. Inaudible events are kept in the debug log.
 
 signal heard(observation: Observation.HeardObservation)
 
+const LOG_SIZE := 10
+
 var rng := RandomNumberGenerator.new()
-## Latest footsteps evaluation for this listener (debug only):
-## {time, distance_gu, radius_gu, walls, heard, reason}
+## Latest footsteps evaluation for this listener (debug only).
 var last_footsteps_diag := {}
+## Debug chain entries (F3): newest last. Never used for gameplay decisions.
+var debug_log: Array[Dictionary] = []
+var _entries := {}   # observation instance id -> debug entry
 var _modifiers := {}
 
 
@@ -32,6 +39,21 @@ func get_listener_position() -> Vector2:
 	return (get_parent() as Node2D).global_position
 
 
+func is_listener_hidden() -> bool:
+	var o := get_parent()
+	return o.has_method(&"is_hidden_in_spot") and o.is_hidden_in_spot()
+
+
+## Colliders that must not count as occluders (the closet the listener sits in).
+func get_listener_exclude() -> Array[RID]:
+	var o := get_parent()
+	if o.has_method(&"get_hiding_spot_rid"):
+		var rid: RID = o.get_hiding_spot_rid()
+		if rid.is_valid():
+			return [rid]
+	return []
+
+
 func add_hearing_modifier(id: StringName, multiplier: float) -> void:
 	_modifiers[id] = multiplier
 
@@ -47,17 +69,34 @@ func get_hearing_multiplier() -> float:
 	return m
 
 
-func receive_sound(ev: SoundEventBus.SoundEvent, distance_px: float = 0.0, radius_px: float = 0.0, walls: bool = false) -> void:
+func receive_sound(ev: SoundEventBus.SoundEvent, acoustic: Dictionary) -> void:
+	var entry := {
+		"t": GameClock.now(), "source_actor": ev.emitter_id, "event_type": ev.kind, "moving": ev.speed > 0.0 or ev.kind == &"footsteps",
+		"material": ev.material, "real_position": ev.source_world_position, "occluders": acoustic.occluders,
+		"listener_state": "HIDDEN" if acoustic.hidden else "NORMAL", "audible": acoustic.audible,
+		"reason": acoustic.reason, "region": null, "audio_play_called": false, "voice_active": false, "marker_spawned": false,
+	}
+	_push(entry)
 	if ev.kind == &"footsteps":
-		# Footsteps are only a signal of someone moving OUTSIDE direct view.
-		var emitter: Object = instance_from_id(ev.emitter_id) if is_instance_id_valid(ev.emitter_id) else null
-		var vis: VisionSensor = get_parent().get_node_or_null(^"VisionSensor")
-		if emitter != null and vis != null and emitter.has_method(&"get_perception_points") \
-				and vis.count_visible_points(emitter.get_perception_points()) > 0:
-			note_footsteps(false, "source in direct LOS", distance_px, radius_px, walls)
-			return
-		note_footsteps(true, "heard", distance_px, radius_px, walls)
-	heard.emit(sanitize(ev.kind, ev.source_world_position, GameClock.now(), rng, GameParams.current()))
+		note_footsteps(acoustic.audible, acoustic.reason, acoustic.distance_px, acoustic.effective_radius_px, acoustic.occluders > 0)
+	if not acoustic.audible:
+		return
+	var obs := perceive(ev.kind, ev.source_world_position, acoustic, ev.material, GameClock.now(), rng, GameParams.current())
+	entry.region = obs.approximate_region
+	_entries[obs.get_instance_id()] = entry
+	heard.emit(obs)
+
+
+func debug_entry(obs: Observation.HeardObservation) -> Dictionary:
+	return _entries.get(obs.get_instance_id(), {})
+
+
+func _push(entry: Dictionary) -> void:
+	debug_log.append(entry)
+	if debug_log.size() > LOG_SIZE:
+		debug_log.pop_front()
+	if _entries.size() > 64:
+		_entries.clear()
 
 
 func note_footsteps(was_heard: bool, reason: String, distance_px: float, radius_px: float, walls: bool) -> void:
@@ -67,19 +106,23 @@ func note_footsteps(was_heard: bool, reason: String, distance_px: float, radius_
 	}
 
 
-## Pure conversion from an internal event to the public observation.
-static func sanitize(kind: StringName, source: Vector2, now: float, rng: RandomNumberGenerator, p: GameParams) -> Observation.HeardObservation:
+## Pure conversion from an internal event + acoustic verdict to the public observation.
+static func perceive(kind: StringName, source: Vector2, acoustic: Dictionary, material: StringName, now: float,
+		rng: RandomNumberGenerator, p: GameParams) -> Observation.HeardObservation:
 	var obs := Observation.HeardObservation.new()
 	obs.kind = kind
 	obs.timestamp = now
-	if kind == &"footsteps":
-		obs.is_nearby_presence = true
-		obs.intensity_band = &"none"
-		obs.approximate_region = null
-		return obs
-	obs.is_nearby_presence = false
-	obs.intensity_band = &"loud" if kind == &"impact" or kind == &"glass" else &"medium"
-	var r := GameParams.gu(p.approx_region_radius)
-	var off := Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, r * p.approx_region_offset_ratio)
-	obs.approximate_region = {"center": source + off, "radius": r}
+	obs.is_nearby_presence = kind == &"footsteps"
+	obs.intensity_band = &"loud" if kind == &"impact" or kind == &"glass" else (&"low" if kind == &"footsteps" or kind == &"foliage" else &"medium")
+	obs.volume = acoustic.loudness
+	obs.muffled = acoustic.muffled
+	obs.surface = material
+	obs.approximate_region = Acoustics.approximate_region(source, acoustic, rng, p)
 	return obs
+
+
+## Backwards-compatible helper for tests: an unoccluded verdict at 1/3 of the radius.
+static func sanitize(kind: StringName, source: Vector2, now: float, rng: RandomNumberGenerator, p: GameParams) -> Observation.HeardObservation:
+	var r := GameParams.gu(3.0)
+	var ac := Acoustics.evaluate(r, source, source + Vector2(r / 3.0, 0), 0, false, 1.0, p)
+	return perceive(kind, source, ac, &"", now, rng, p)

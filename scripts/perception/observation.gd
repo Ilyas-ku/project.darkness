@@ -21,15 +21,22 @@ class ObservedVictim:
 		is_peeking = peeking
 
 
-## Produced by HearingSensor.
-## approximate_region is null for footsteps, otherwise {"center": Vector2, "radius": float}
-## in world px; the true source lies somewhere inside the circle.
+## Produced by HearingSensor (the PerceivedSound of the spec).
+## approximate_region = {"center": Vector2, "radius": float} in world px: a coarse,
+## offset circle that contains the true source. No source id, role, exact position
+## or source count ever appears here.
 class HeardObservation:
 	var kind: StringName
 	var timestamp: float
 	var is_nearby_presence: bool
 	var intensity_band: StringName
 	var approximate_region: Variant = null
+	## 0..1 perceived loudness after distance and occlusion.
+	var volume := 0.0
+	## Heard through walls / from inside a closet (low-passed playback).
+	var muffled := false
+	## Character of the sound (wood / dirt / grass / leaves) — not who made it.
+	var surface: StringName = &""
 
 	func is_localizable() -> bool:
 		return approximate_region != null
@@ -46,6 +53,9 @@ class HeardObservation:
 			"timestamp": timestamp,
 			"is_nearby_presence": is_nearby_presence,
 			"intensity_band": intensity_band,
+			"volume": volume,
+			"muffled": muffled,
+			"surface": surface,
 		}
 		if approximate_region != null:
 			d["approximate_region"] = {"center": region_center(), "radius": region_radius()}

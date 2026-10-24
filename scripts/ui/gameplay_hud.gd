@@ -24,7 +24,6 @@ var _hint_label: Label
 var _progress_panel: PanelContainer
 var _progress_label: Label
 var _progress: ProgressBar
-var _steps: _StepsPulse
 var _status_label: Label
 var _instruction: Label
 var _vignette: ColorRect
@@ -33,7 +32,6 @@ var _result_panel: PanelContainer
 var _result_title: Label
 var _result_text: Label
 var _debug_menu: PanelContainer
-var _steps_left := 0.0
 var _steps_shown := false
 var _hurt := 0.0
 
@@ -204,9 +202,6 @@ void fragment() {
 	center.add_theme_constant_override(&"separation", 6)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(center)
-	_steps = _StepsPulse.new()
-	_steps.custom_minimum_size = Vector2(360, 40)
-	center.add_child(_steps)
 	_status_label = _label(center, "", 14, Color(0.8, 0.85, 0.95))
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_progress_panel = _panel_container(center)
@@ -236,6 +231,7 @@ void fragment() {
 
 	_build_debug_menu(root)
 	_pause_panel = _modal(root, "ПАУЗА", "Esc — продолжить · F2 — debug-пресеты", true)
+	_build_settings(_pause_panel.get_child(0))
 	_pause_panel.visible = false
 	_result_panel = _modal(root, "", "", true)
 	var box: VBoxContainer = _result_panel.get_child(0)
@@ -312,12 +308,39 @@ func set_instruction(text: String) -> void:
 	_instruction.text = ("[%s] " % DebugPresets.active + text) if text != "" else ""
 
 
+## Footsteps are shown on the map (SoundMarkers); kept for logs and tests.
 func flash_footsteps() -> void:
-	_steps_left = GameParams.current().hud_footsteps_hold
+	pass
 
 
 func is_footsteps_visible() -> bool:
-	return _steps_left > 0.0
+	return session.sound_markers.active_count(&"footsteps") > 0
+
+
+## Volume sliders per bus and the sound-marker accessibility toggle.
+func _build_settings(box: VBoxContainer) -> void:
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override(&"h_separation", 12)
+	box.add_child(grid)
+	var names := {"Master": "Общая громкость", "Footsteps": "Шаги и шорох", "SFX": "Звуки событий", "Ambient": "Фон"}
+	for b in names:
+		_label(grid, names[b], 13)
+		var sl := HSlider.new()
+		sl.min_value = 0.0
+		sl.max_value = 1.0
+		sl.step = 0.05
+		sl.custom_minimum_size = Vector2(180, 18)
+		sl.value = Settings.volumes[b]
+		sl.value_changed.connect(func(v): Settings.set_volume(b, v))
+		grid.add_child(sl)
+	var cb := CheckBox.new()
+	cb.text = "Звуковые метки на карте"
+	cb.button_pressed = Settings.sound_markers
+	cb.toggled.connect(func(on):
+		Settings.sound_markers = on
+		Settings.save())
+	box.add_child(cb)
 
 
 func set_pause_visible(v: bool) -> void:
@@ -363,10 +386,8 @@ func _process(delta: float) -> void:
 		return
 	var p := GameParams.current()
 	if not get_tree().paused:
-		_steps_left = maxf(0.0, _steps_left - delta)
 		_hurt = maxf(0.0, _hurt - delta * 1.5)
-	var shown := _steps_left > 0.0
-	_steps.level = clampf(_steps_left / p.hud_footsteps_hold, 0.0, 1.0)
+	var shown := is_footsteps_visible()
 	if shown != _steps_shown:
 		_steps_shown = shown
 		footsteps_indicator_changed.emit(shown)
@@ -403,24 +424,3 @@ func _process(delta: float) -> void:
 	elif hs == HealthComponent.HState.DOWNED:
 		status = "Вы повалены"
 	_status_label.text = status
-
-
-## Neutral presence pulse: two footprints with expanding rings. No direction.
-class _StepsPulse extends Control:
-	var level := 0.0
-	var _t := 0.0
-
-	func _process(delta: float) -> void:
-		_t += delta
-		queue_redraw()
-
-	func _draw() -> void:
-		if level <= 0.0:
-			return
-		var c := size * 0.5
-		var a := level
-		for k in 2:
-			var ph := fmod(_t * 1.4 + k * 0.5, 1.0)
-			draw_arc(c, 10 + ph * 16, 0, TAU, 32, Color(0.95, 0.9, 0.8, (1.0 - ph) * 0.6 * a), 1.5)
-		var tex := Art.tex("ui/icon_steps.png")
-		draw_texture_rect(tex, Rect2(c - Vector2(14, 14), Vector2(28, 28)), false, Color(1, 1, 1, a))

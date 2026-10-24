@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/characters/survivor_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/perception/vision_sensor.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/perception/hearing_sensor.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/audio/footstep_emitter.gd" id="fs"]
 [ext_resource type="Script" path="res://scripts/interactions/inventory.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/characters/health_component.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/characters/character_visual.gd" id="6"]
@@ -16,6 +17,9 @@ script = ExtResource("2")
 
 [node name="HearingSensor" type="Node" parent="."]
 script = ExtResource("3")
+
+[node name="FootstepEmitter" type="Node" parent="."]
+script = ExtResource("fs")
 
 [node name="Inventory" type="Node" parent="."]
 script = ExtResource("4")

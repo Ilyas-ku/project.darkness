@@ -8,7 +8,9 @@ const TITLES := {
 	&"TEST_COMBAT": "Маньяк и жертва на поляне",
 	&"TEST_EXIT_INTERRUPT": "Удержание выхода, маньяк прерывает",
 	&"TEST_STONE_LOOP": "Камень рядом: бросок и подбор",
-	&"TEST_FOOTSTEPS": "DEBUG: Hearing Test — маньяк ходит за стеной",
+	&"TEST_STEPS_CLOSET": "Игрок в шкафу, маньяк ходит по спальне и останавливается",
+	&"TEST_STEPS_WALL": "DEBUG: Hearing Test — маньяк ходит за стеной",
+	&"TEST_SOUND_OCCLUSION": "Шаги за входной дверью: дверь то открыта, то закрыта",
 	&"TEST_WINDOW_NAV": "Погоня в спальне, уход через окно",
 }
 
@@ -29,8 +31,12 @@ static func instruction() -> String:
 			return "Удерживайте E у ворот. Удар маньяка обнулит прогресс."
 		&"TEST_STONE_LOOP":
 			return "E — поднять камень, ЛКМ — бросить. Повторите 10 раз."
-		&"TEST_FOOTSTEPS":
+		&"TEST_STEPS_CLOSET":
+			return "Вы в закрытом шкафу. Маньяк проходит по спальне, стоит 2 с у шкафа и уходит. Слушайте шаги (приглушённо) и смотрите на пятна."
+		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			return "Стойте в спальне. Маньяк ходит снаружи за северной стеной, останавливается и уходит."
+		&"TEST_SOUND_OCCLUSION":
+			return "Стойте у входной двери. Маньяк ходит снаружи; дверь каждые 4 с открывается/закрывается — сравните громкость и глухость."
 		&"TEST_WINDOW_NAV":
 			return "Удерживайте E у окна (запад спальни) и уходите. Маньяк выберет окно или обход."
 	return ""
@@ -62,13 +68,21 @@ static func apply(s: GameSession) -> bool:
 			var stone: Node2D = s.get_tree().get_nodes_in_group(&"stone")[1]
 			stone.global_position = g(15.8, 13)
 			s.prepare_left = 600.0
-		&"TEST_FOOTSTEPS":
+		&"TEST_STEPS_CLOSET":
+			var locker: Node = cabin.get_node("Locker")
+			sv.global_position = locker.get_exit_position()
+			locker.interact(sv)
+			cabin.get_node("InnerDoor").set_open(true, null)
+			_drive(s, g(9.2, 9.5), [[Vector2(9.2, 6.6), 0.0], [Vector2(7.6, 5.0), 0.0], [Vector2(4.2, 4.3), 2.0],
+				[Vector2(7.6, 5.0), 0.0], [Vector2(9.2, 6.6), 0.0], [Vector2(9.2, 9.5), 2.0]])
+			cabin.get_node("FrontDoor").set_open(true, null)
+		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			sv.global_position = g(5.0, 3.2)
-			s.spawn_killer_at(g(2.0, 1.0), Vector2.RIGHT)
-			s.killer.brain.set_physics_process(false)
-			var driver := HearingTestDriver.new()
-			driver.killer = s.killer
-			s.add_child(driver)
+			_drive(s, g(2.0, 1.0), [[Vector2(9.5, 1.0), 2.0], [Vector2(17.0, 1.0), 2.0], [Vector2(2.0, 1.0), 2.0]])
+		&"TEST_SOUND_OCCLUSION":
+			sv.global_position = g(9.2, 6.7)
+			var drv := _drive(s, g(6.8, 9.2), [[Vector2(11.6, 9.2), 0.0], [Vector2(6.8, 9.2), 0.0]])
+			drv.toggle_door = cabin.get_node("FrontDoor")
 		&"TEST_WINDOW_NAV":
 			sv.global_position = g(4.0, 4.6)
 			s.spawn_killer_at(g(6.2, 5.0), Vector2.LEFT)
@@ -77,26 +91,47 @@ static func apply(s: GameSession) -> bool:
 	return true
 
 
-## Moves the killer on a fixed loop outside the bedroom's north wall:
-## walk east (audible), stop 2 s, walk far east (out of range), stop, come back.
-class HearingTestDriver extends Node:
-	var killer: Node
-	var _waypoints := [Vector2(9.5, 1.0), Vector2(9.5, 1.0), Vector2(17.0, 1.0), Vector2(17.0, 1.0), Vector2(2.0, 1.0), Vector2(2.0, 1.0)]
+## Spawns the killer with its brain off and drives it along a looping path.
+static func _drive(s: GameSession, start: Vector2, waypoints: Array) -> PathDriver:
+	s.spawn_killer_at(start, Vector2.RIGHT)
+	s.killer.brain.set_physics_process(false)
+	var d := PathDriver.new()
+	d.actor = s.killer
+	d.waypoints = waypoints
+	s.add_child(d)
+	return d
+
+
+## Moves an actor along [[point_gu, stop_seconds], ...] in a loop; optionally toggles a door every 4 s.
+class PathDriver extends Node:
+	var actor: Node
+	var waypoints: Array = []
+	var toggle_door: Node = null
 	var _i := 0
-	var _wait := 0.0
+	var _wait := -1.0
+	var _door_t := 0.0
 
 	func _physics_process(delta: float) -> void:
-		if killer == null or not is_instance_valid(killer):
+		if actor == null or not is_instance_valid(actor) or waypoints.is_empty():
 			return
-		var wp: Vector2 = _waypoints[_i] * GameParams.PX_PER_GU
-		if _i % 2 == 1:
-			killer.stop()
+		if toggle_door != null:
+			_door_t += delta
+			if _door_t >= 4.0:
+				_door_t = 0.0
+				toggle_door.set_open(not toggle_door.is_open(), null)
+				print("[preset] door %s" % ("open" if toggle_door.is_open() else "closed"))
+		var wp: Array = waypoints[_i]
+		if _wait >= 0.0:
+			actor.stop()
 			_wait += delta
-			if _wait >= 2.0:
-				_wait = 0.0
-				_i = (_i + 1) % _waypoints.size()
+			if _wait >= wp[1]:
+				_wait = -1.0
+				_i = (_i + 1) % waypoints.size()
 			return
-		killer.move_to(wp)
-		if killer.has_arrived(0.2):
-			print("[hearing-test] killer at %s, stopping 2 s" % str(_waypoints[_i]))
-			_i = (_i + 1) % _waypoints.size()
+		actor.move_to(wp[0] * GameParams.PX_PER_GU)
+		if actor.has_arrived(0.2):
+			if wp[1] > 0.0:
+				print("[preset] actor at %s, stopping %.1f s" % [str(wp[0]), wp[1]])
+				_wait = 0.0
+			else:
+				_i = (_i + 1) % waypoints.size()

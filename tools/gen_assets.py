@@ -615,9 +615,9 @@ def audio():
         n = int(0.16 * RATE)
         noise = lowpass(rng.normal(0, 1, n), 6 + i * 2)
         thump = np.sin(2 * np.pi * (70 + i * 8) * t(0.16)) * env(n, 0.003, 0.03)
-        write_wav(f"step_grass_{i}.wav", noise * env(n, 0.005, 0.04) + thump * 0.6, 0.55)
+        write_wav(f"step_grass_{i}.wav", noise * env(n, 0.005, 0.04) + thump * 0.6, 0.85)
     n = int(0.18 * RATE)
-    write_wav("step_wood.wav", np.sin(2 * np.pi * 110 * t(0.18)) * env(n, 0.002, 0.05) + lowpass(rng.normal(0, 0.4, n), 3) * env(n, 0.002, 0.02), 0.5)
+    write_wav("step_wood.wav", np.sin(2 * np.pi * 110 * t(0.18)) * env(n, 0.002, 0.05) + lowpass(rng.normal(0, 0.4, n), 3) * env(n, 0.002, 0.02), 0.85)
     # door creak: FM tone sweep + grit
     tt = t(0.7)
     f = 320 + 140 * np.sin(2 * np.pi * 1.6 * tt) + 60 * tt
@@ -681,6 +681,83 @@ def audio():
     write_wav("night_ambience.wav", wind + crick, 0.3)
 
 
+def bandnoise(rng, n, lo_k, hi_k):
+    """Crude band-pass: difference of two moving averages."""
+    x = rng.normal(0, 1, n)
+    return lowpass(x, lo_k) - lowpass(x, hi_k)
+
+
+def audio_v03():
+    """Prototype 0.3 additions: material steps, rustles, door open/close, locker close,
+    throw, wound, body fall, gate latch."""
+    rng = np.random.default_rng(70)
+    tn = lambda n: np.arange(n) / RATE
+    # dirt steps: gritty crunch
+    for i in range(2):
+        n = int(0.2 * RATE)
+        grit = bandnoise(rng, n, 2, 12) * env(n, 0.002, 0.05)
+        thump = np.sin(2 * np.pi * (85 + 10 * i) * tn(n)) * env(n, 0.002, 0.035)
+        crack = (rng.random(n) > 0.995) * rng.normal(0, 3, n) * env(n, 0.001, 0.06)
+        write_wav(f"step_dirt_{i}.wav", grit + thump * 0.8 + crack, 0.85)
+    # second wood step: hollow knock
+    n = int(0.2 * RATE)
+    knock = sum(np.sin(2 * np.pi * f * tn(n)) * np.exp(-tn(n) * d) for f, d in ((150, 30), (310, 45), (520, 70)))
+    write_wav("step_wood_1.wav", knock + bandnoise(rng, n, 2, 6) * env(n, 0.001, 0.015) * 0.6, 0.85)
+    # rustles: leaves, three intensities
+    for i, (dur, dens) in enumerate(((0.35, 0.985), (0.45, 0.975), (0.55, 0.96))):
+        n = int(dur * RATE)
+        body = bandnoise(rng, n, 2, 9) * np.sin(np.pi * tn(n) / dur) ** 1.5
+        crackle = (rng.random(n) > dens) * rng.normal(0, 1.5, n)
+        crackle = lowpass(crackle, 2)
+        write_wav(f"rustle_{i}.wav", body * 0.8 + crackle, 0.55 + 0.1 * i)
+    # door open: latch click + short creak
+    n = int(0.45 * RATE)
+    t_ = tn(n)
+    click = np.zeros(n)
+    k = int(0.03 * RATE)
+    click[:k] = np.sin(2 * np.pi * 1800 * t_[:k]) * np.exp(-t_[:k] * 200)
+    f = 420 + 160 * t_ / 0.45
+    creak = np.sign(np.sin(2 * np.pi * np.cumsum(f) / RATE)) * 0.3 * np.sin(np.pi * np.clip((t_ - 0.05) / 0.4, 0, 1)) ** 0.7
+    write_wav("door_open.wav", click * 1.5 + lowpass(creak + rng.normal(0, 0.15, n), 4), 0.55)
+    # door close: creak + wooden thump
+    n = int(0.45 * RATE)
+    t_ = tn(n)
+    f = 520 - 200 * t_ / 0.45
+    creak = np.sign(np.sin(2 * np.pi * np.cumsum(f) / RATE)) * 0.25 * np.clip(1 - t_ / 0.3, 0, 1)
+    k0 = int(0.28 * RATE)
+    th = np.zeros(n)
+    th[k0:] = (np.sin(2 * np.pi * 95 * tn(n - k0)) + 0.5 * np.sin(2 * np.pi * 190 * tn(n - k0))) * np.exp(-tn(n - k0) * 22)
+    write_wav("door_close.wav", lowpass(creak, 4) + th * 1.6 + bandnoise(rng, n, 2, 8) * 0.05, 0.6)
+    # locker close: metal clunk
+    n = int(0.4 * RATE)
+    t_ = tn(n)
+    clunk = sum(np.sin(2 * np.pi * f * t_) * np.exp(-t_ * d) for f, d in ((210, 14), (390, 18), (860, 25)))
+    write_wav("locker_close.wav", clunk + rng.normal(0, 0.3, n) * np.exp(-t_ * 60), 0.55)
+    # throw whoosh
+    n = int(0.28 * RATE)
+    write_wav("throw_whoosh.wav", bandnoise(rng, n, 2, 10) * np.sin(np.pi * tn(n) / 0.28) ** 2, 0.45)
+    # wound: short pained vocalisation (formant-ish glide)
+    n = int(0.5 * RATE)
+    t_ = tn(n)
+    f0 = 260 - 90 * t_ / 0.5 + 6 * np.sin(2 * np.pi * 7 * t_)
+    ph = 2 * np.pi * np.cumsum(f0) / RATE
+    voice = sum(np.sin(ph * h) * a for h, a in ((1, 1.0), (2, 0.6), (3, 0.35), (4, 0.2), (5, 0.12)))
+    voice = lowpass(voice, 3) * np.sin(np.pi * t_ / 0.5) ** 0.6 * np.exp(-t_ * 2)
+    write_wav("wound_cry.wav", voice + bandnoise(rng, n, 2, 6) * 0.08, 0.5)
+    # body fall: low thud + rustle
+    n = int(0.5 * RATE)
+    t_ = tn(n)
+    write_wav("body_fall.wav", np.sin(2 * np.pi * 60 * t_) * np.exp(-t_ * 12) * 1.4 + bandnoise(rng, n, 2, 9) * np.exp(-t_ * 8) * 0.6, 0.75)
+    # gate latch (start of the 5 s hold)
+    n = int(0.3 * RATE)
+    t_ = tn(n)
+    l = np.zeros(n)
+    for st in (0.0, 0.09):
+        k0 = int(st * RATE)
+        l[k0:] += np.sin(2 * np.pi * 1300 * tn(n - k0)) * np.exp(-tn(n - k0) * 90)
+    write_wav("gate_latch.wav", l + rng.normal(0, 0.05, n) * np.exp(-t_ * 30), 0.5)
+
+
 def main():
     grass_texture()
     path_texture()
@@ -701,6 +778,7 @@ def main():
     items()
     ui_icons()
     audio()
+    audio_v03()
     print("assets written to", os.path.normpath(ROOT))
 
 
