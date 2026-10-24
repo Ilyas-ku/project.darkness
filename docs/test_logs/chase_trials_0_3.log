@@ -1,0 +1,62 @@
+
+01 open: sprint straight east -> ESCAPED at 14.5s | no sight for 10 s, killer state TRAVEL_TO_POI, hits [], LOS breaks 3
+         7.3s PATROL -> TRAVEL_TO_POI: least recently visited (exit_path)
+        12.1s swept a_sweep
+        12.1s finished area exit_path
+        12.1s TRAVEL_TO_POI -> PATROL: area done
+        12.2s PATROL -> TRAVEL_TO_POI: least recently visited (clearing)
+02 open: zigzag on the clearing -> CAUGHT at 8.6s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 5, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+         6.6s LOCAL_SEARCH -> LOCAL_SEARCH: noticed blood trace
+         7.7s LOCAL_SEARCH -> CHASE: victim visible
+         8.4s CHASE -> ATTACK: victim in attack range (1.06 gu)
+         8.7s attack hit
+         8.7s ATTACK -> CHASE: attack hit, recovery
+03 trees: loop the east tree group, then sneak north -> CAUGHT at 4.4s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 1, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+         3.2s attack hit
+         3.2s ATTACK -> CHASE: attack hit, recovery
+         4.2s CHASE -> ATTACK: victim in attack range (0.53 gu)
+         4.5s attack hit
+         4.5s ATTACK -> CHASE: attack hit, recovery
+04 trees then bush: break LOS behind trunks, freeze in a bush -> ESCAPED at 11.4s | no sight for 10 s, killer state LOCAL_SEARCH, hits [], LOS breaks 2
+         0.1s PATROL -> CHASE: victim visible
+         0.7s CHASE -> GO_TO_LAST_SEEN: LOS lost
+         1.0s GO_TO_LAST_SEEN -> CHASE: victim visible
+         1.6s CHASE -> GO_TO_LAST_SEEN: LOS lost
+         2.1s GO_TO_LAST_SEEN -> LOCAL_SEARCH: reached last seen position
+05 bush: run into a bush and stand still -> ESCAPED at 10.3s | no sight for 10 s, killer state TRAVEL_TO_POI, hits [], LOS breaks 1
+         6.0s entered house
+        10.3s swept a_sweep
+        10.3s finished area house_back
+        10.3s TRAVEL_TO_POI -> PATROL: area done
+        10.3s PATROL -> TRAVEL_TO_POI: least recently visited (house)
+06 bush: run through a bush without stopping -> CAUGHT at 4.6s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 1, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+         3.4s attack hit
+         3.4s ATTACK -> CHASE: attack hit, recovery
+         4.4s CHASE -> ATTACK: victim in attack range (0.25 gu)
+         4.7s attack hit
+         4.7s ATTACK -> CHASE: attack hit, recovery
+07 house: door, close it behind, window, bush -> UNRESOLVED at 45.0s | killer state ATTACK, hits [], LOS breaks 39
+        43.8s CHASE -> GO_TO_LAST_SEEN: LOS lost
+        43.8s GO_TO_LAST_SEEN -> LOCAL_SEARCH: reached last seen position
+        44.8s opened hiding spot Locker: empty
+        44.9s LOCAL_SEARCH -> CHASE: victim visible
+        44.9s CHASE -> ATTACK: victim in attack range (0.88 gu)
+08 house: door, hide in the locker -> ESCAPED at 12.6s | no sight for 10 s, killer state LOCAL_SEARCH, hits [], LOS breaks 1
+         1.3s entered house
+         2.6s CHASE -> ATTACK: victim in attack range (1.03 gu)
+         3.1s ATTACK -> GO_TO_LAST_SEEN: attack whiff: no_target_in_reach, LOS lost
+         3.1s GO_TO_LAST_SEEN -> LOCAL_SEARCH: reached last seen position
+         6.6s entered house
+09 window first: vault out, sprint to the west woods, sneak -> ESCAPED at 18.8s | no sight for 10 s, killer state SWEEP_INTERIOR, hits [], LOS breaks 9
+         8.9s CHASE -> GO_TO_LAST_SEEN: LOS lost
+         8.9s GO_TO_LAST_SEEN -> INVESTIGATE_SOUND: heard foliage
+        12.0s INVESTIGATE_SOUND -> RETURN_TO_PATROL: no evidence at sound area
+        12.0s RETURN_TO_PATROL -> TRAVEL_TO_POI: resume interrupted plan (south_forest)
+        17.0s swept a_sweep
+10 house corners: circle the house outside -> CAUGHT at 9.0s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 5, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
+         7.8s attack hit
+         7.8s ATTACK -> CHASE: attack hit, recovery
+         8.8s CHASE -> ATTACK: victim in attack range (0.30 gu)
+         9.1s attack hit
+         9.1s ATTACK -> CHASE: attack hit, recovery
+SUMMARY { "CAUGHT": 4, "ESCAPED": 5, "UNRESOLVED": 1 }

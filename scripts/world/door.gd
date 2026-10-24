@@ -3,6 +3,8 @@ extends StaticBody2D
 ## Opening emits a "door" sound event. The drawn state is the survivor's
 ## remembered state: it only updates while the door is actually visible.
 
+signal toggled(open: bool)
+
 enum State { CLOSED, OPEN }
 
 @export var width_gu := 1.2
@@ -33,17 +35,27 @@ func is_open() -> bool:
 	return state == State.OPEN
 
 
+## Low-level state change: collision follows the state immediately (the doorway is
+## passable from the same frame the opening starts); open and close each make a sound.
 func set_open(open: bool, actor: Node = null) -> bool:
 	if open == is_open():
 		return true
 	if not open and _doorway_occupied():
 		return false
 	state = State.OPEN if open else State.CLOSED
+	_last_toggle = GameClock.now()
 	_shape.set_deferred(&"disabled", open)
+	var id := actor.get_instance_id() if actor != null else 0
+	var p := GameParams.current()
 	if open:
-		var id := actor.get_instance_id() if actor != null else 0
-		SoundEventBus.emit(&"door", global_position, GameParams.current().door_open_radius, id)
+		SoundEventBus.emit(&"door", global_position, p.door_open_radius, id)
+	else:
+		SoundEventBus.emit(&"door_close", global_position, p.door_close_radius, id)
+	toggled.emit(open)
 	return true
+
+
+var _last_toggle := -INF
 
 
 func _doorway_occupied() -> bool:
@@ -71,7 +83,12 @@ func can_interact(_actor: Node) -> bool:
 
 
 func get_interact_duration(_actor: Node) -> float:
-	return GameParams.current().door_toggle_time
+	return 0.0
+
+
+## Doors are a single press, not a timed channel: the actor keeps moving.
+func is_instant() -> bool:
+	return true
 
 
 func get_interact_hint(_actor: Node) -> String:
@@ -79,6 +96,8 @@ func get_interact_hint(_actor: Node) -> String:
 
 
 func interact(actor: Node) -> void:
+	if GameClock.now() - _last_toggle < GameParams.current().door_debounce:
+		return
 	set_open(not is_open(), actor)
 
 
@@ -88,7 +107,7 @@ var _swing := 0.0
 func _process(delta: float) -> void:
 	var target := 1.0 if displayed_open else 0.0
 	if not is_equal_approx(_swing, target):
-		_swing = move_toward(_swing, target, delta / 0.25)
+		_swing = move_toward(_swing, target, delta / GameParams.current().door_anim_time)
 		queue_redraw()
 
 

@@ -172,7 +172,8 @@ static var _current: GameParams
 @export var exit_requires_sunrise := false
 
 @export_group("Interaction")
-@export var window_vault_time := 1.2
+## Open window: hold E (vault through the opening).
+@export var window_vault_time := 0.9
 @export var furniture_move_time := 1.5
 @export var furniture_push_distance := 1.0
 @export var furniture_move_radius := 4.0
@@ -184,7 +185,12 @@ static var _current: GameParams
 @export var stone_rest_speed := 0.2
 @export var interact_range := 1.2
 @export var stone_pickup_time := 0.4
-@export var door_toggle_time := 0.3
+## Normal unlocked door: one press, the state changes at once, the leaf animates
+## for door_anim_time; the player keeps moving. Repeated presses within
+## door_debounce are ignored (key auto-repeat).
+@export var door_anim_time := 0.2
+@export var door_debounce := 0.3
+@export var door_close_radius := 4.0
 @export var locker_enter_exit_time := 0.6
 @export var stone_speed := 10.0
 @export var stone_max_range := 7.0

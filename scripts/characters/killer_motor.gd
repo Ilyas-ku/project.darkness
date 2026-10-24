@@ -19,6 +19,7 @@ var facing := Vector2.DOWN
 var movement_mode: StringName = &"idle"
 var stuck := false
 var stuck_reason := ""
+var door_opens := 0
 
 var _target := Vector2.ZERO
 var _has_target := false
@@ -257,10 +258,10 @@ func _start_passage_action(dir: Vector2) -> bool:
 		return false
 	var obj: Node = hit.collider
 	if obj.is_in_group(&"door") and not obj.is_open():
-		_look_dir = dir
-		velocity = Vector2.ZERO
-		_action = {"kind": &"door", "left": params.door_toggle_time, "object": obj}
-		return true
+		# same fast door logic as the survivor: open on the move, no stop
+		obj.set_open(true, self)
+		door_opens += 1
+		return false
 	if obj.is_in_group(&"window"):
 		var plan: Dictionary = obj.plan_vault(self, GameParams.gu(params.killer_radius))
 		if not plan.ok:

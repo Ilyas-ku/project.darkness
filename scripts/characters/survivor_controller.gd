@@ -259,6 +259,9 @@ func try_interact() -> bool:
 		return false
 	if target.has_method(&"can_start") and not target.can_start(self):
 		return false
+	if target.has_method(&"is_instant") and target.is_instant():
+		target.interact(self)
+		return true
 	var d: float = target.get_interact_duration(self)
 	_channel = {"target": target, "left": d, "total": d, "hold": target.has_method(&"requires_hold") and target.requires_hold()}
 	if target.is_in_group(&"window"):

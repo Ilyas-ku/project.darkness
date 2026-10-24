@@ -11,6 +11,8 @@ const TITLES := {
 	&"TEST_STEPS_CLOSET": "Игрок в шкафу, маньяк ходит по спальне и останавливается",
 	&"TEST_STEPS_WALL": "DEBUG: Hearing Test — маньяк ходит за стеной",
 	&"TEST_SOUND_OCCLUSION": "Шаги за входной дверью: дверь то открыта, то закрыта",
+	&"TEST_DOOR_SPRINT": "Бег сквозь входную дверь: E на бегу",
+	&"TEST_CHASE_BREAK_LOS": "Погоня у группы деревьев: разорвите контакт",
 	&"TEST_BUSH_STATIC": "Жертва неподвижно в кусте, маньяк ходит мимо",
 	&"TEST_BUSH_WALK_RUN": "Жертва у куста, маньяк смотрит: пройдите куст крадучись, шагом, бегом",
 	&"TEST_WINDOW_NAV": "Погоня в спальне, уход через окно",
@@ -37,6 +39,10 @@ static func instruction() -> String:
 			return "Вы в закрытом шкафу. Маньяк проходит по спальне, стоит 2 с у шкафа и уходит. Слушайте шаги (приглушённо) и смотрите на пятна."
 		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			return "Стойте в спальне. Маньяк ходит снаружи за северной стеной, останавливается и уходит."
+		&"TEST_DOOR_SPRINT":
+			return "Бегите (Shift) к закрытой двери дома и нажмите E на бегу: дверь откроется за 0.2 с, вы не остановитесь. Повторное нажатие закроет."
+		&"TEST_CHASE_BREAK_LOS":
+			return "Маньяк уже видит вас. Уведите его за стволы на поляне/в кусты или через дом с окном, чтобы разорвать линию зрения."
 		&"TEST_BUSH_STATIC":
 			return "Стойте в кусте не двигаясь. Маньяк проходит в 2–3 ед. и не видит вас; подойдя вплотную — заметит. F3 показывает сектор."
 		&"TEST_BUSH_WALK_RUN":
@@ -85,6 +91,12 @@ static func apply(s: GameSession) -> bool:
 		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			sv.global_position = g(5.0, 3.2)
 			_drive(s, g(2.0, 1.0), [[Vector2(9.5, 1.0), 2.0], [Vector2(17.0, 1.0), 2.0], [Vector2(2.0, 1.0), 2.0]])
+		&"TEST_DOOR_SPRINT":
+			sv.global_position = g(9.2, 12.0)
+			s.prepare_left = 600.0
+		&"TEST_CHASE_BREAK_LOS":
+			sv.global_position = g(14.0, 13.0)
+			s.spawn_killer_at(g(11.0, 13.0), Vector2.RIGHT)
 		&"TEST_BUSH_STATIC":
 			sv.global_position = g(6.5, 15.0)
 			_drive(s, g(3.0, 12.6), [[Vector2(10.0, 12.6), 1.0], [Vector2(3.0, 12.6), 1.0], [Vector2(6.5, 13.9), 2.0]])
