@@ -60,6 +60,9 @@ func _physics_process(delta: float) -> void:
 		if sv.can_see_point(d.global_position, d):
 			d.set_displayed_open(d.is_open())
 
+	for b in get_tree().get_nodes_in_group(&"bush"):
+		b.reveal = killer_perceived and b.contains_point(killer_pos)
+
 	for c in get_tree().get_nodes_in_group(&"canopy"):
 		var under: bool = c.covers(survivor.global_position) or (killer_perceived and c.covers(killer_pos))
 		c.modulate.a = 0.3 if under else 1.0

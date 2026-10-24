@@ -56,8 +56,13 @@ static var _current: GameParams
 @export var vision_range_lit := 8.0
 @export var night_mode := true
 @export var silhouette_offset := 0.25
-@export var bush_detect_distance := 2.0
-@export var bush_detect_time := 0.6
+## Dense bushes: the viewer's detection range is multiplied for a target inside
+## foliage, by the target's movement (not a probability), plus a short recognition time.
+@export var bush_visibility_stationary := 0.25
+@export var bush_visibility_careful := 0.40
+@export var bush_visibility_walk := 0.60
+@export var bush_visibility_sprint := 0.85
+@export var bush_detect_time := 0.5
 @export var peek_fov_deg := 60.0
 @export var peek_range := 4.0
 @export var peek_transition := 0.25
@@ -88,8 +93,12 @@ static var _current: GameParams
 @export var rustle_radius_careful := 2.0
 @export var rustle_radius_walk := 3.5
 @export var rustle_radius_sprint := 5.0
-## Rustle cadence: every rustle_stride gu actually moved inside foliage, at most once per rustle_cadence_min s.
-@export var rustle_stride := 0.7
+## Rustle cadence while really moving inside foliage: per-gait interval (never below
+## rustle_cadence_min) and at least rustle_stride gu moved since the last rustle.
+@export var rustle_stride := 0.3
+@export var rustle_interval_careful := 0.5
+@export var rustle_interval_walk := 0.36
+@export var rustle_interval_sprint := 0.28
 @export var rustle_cadence_min := 0.28
 @export var approx_region_radius := 2.0
 ## Max offset of the reported region centre from the true source, as a fraction of the radius.

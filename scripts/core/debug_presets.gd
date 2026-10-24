@@ -11,6 +11,8 @@ const TITLES := {
 	&"TEST_STEPS_CLOSET": "Игрок в шкафу, маньяк ходит по спальне и останавливается",
 	&"TEST_STEPS_WALL": "DEBUG: Hearing Test — маньяк ходит за стеной",
 	&"TEST_SOUND_OCCLUSION": "Шаги за входной дверью: дверь то открыта, то закрыта",
+	&"TEST_BUSH_STATIC": "Жертва неподвижно в кусте, маньяк ходит мимо",
+	&"TEST_BUSH_WALK_RUN": "Жертва у куста, маньяк смотрит: пройдите куст крадучись, шагом, бегом",
 	&"TEST_WINDOW_NAV": "Погоня в спальне, уход через окно",
 }
 
@@ -35,6 +37,10 @@ static func instruction() -> String:
 			return "Вы в закрытом шкафу. Маньяк проходит по спальне, стоит 2 с у шкафа и уходит. Слушайте шаги (приглушённо) и смотрите на пятна."
 		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			return "Стойте в спальне. Маньяк ходит снаружи за северной стеной, останавливается и уходит."
+		&"TEST_BUSH_STATIC":
+			return "Стойте в кусте не двигаясь. Маньяк проходит в 2–3 ед. и не видит вас; подойдя вплотную — заметит. F3 показывает сектор."
+		&"TEST_BUSH_WALK_RUN":
+			return "Маньяк стоит и смотрит на куст. Пройдите куст с Ctrl, шагом и с Shift: шорох громче, маскировка слабее."
 		&"TEST_SOUND_OCCLUSION":
 			return "Стойте у входной двери. Маньяк ходит снаружи; дверь каждые 4 с открывается/закрывается — сравните громкость и глухость."
 		&"TEST_WINDOW_NAV":
@@ -79,6 +85,13 @@ static func apply(s: GameSession) -> bool:
 		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			sv.global_position = g(5.0, 3.2)
 			_drive(s, g(2.0, 1.0), [[Vector2(9.5, 1.0), 2.0], [Vector2(17.0, 1.0), 2.0], [Vector2(2.0, 1.0), 2.0]])
+		&"TEST_BUSH_STATIC":
+			sv.global_position = g(6.5, 15.0)
+			_drive(s, g(3.0, 12.6), [[Vector2(10.0, 12.6), 1.0], [Vector2(3.0, 12.6), 1.0], [Vector2(6.5, 13.9), 2.0]])
+		&"TEST_BUSH_WALK_RUN":
+			sv.global_position = g(4.6, 15.0)
+			s.spawn_killer_at(g(6.5, 11.6), Vector2.DOWN)
+			s.killer.brain.set_physics_process(false)
 		&"TEST_SOUND_OCCLUSION":
 			sv.global_position = g(9.2, 6.7)
 			var drv := _drive(s, g(6.8, 9.2), [[Vector2(11.6, 9.2), 0.0], [Vector2(6.8, 9.2), 0.0]])

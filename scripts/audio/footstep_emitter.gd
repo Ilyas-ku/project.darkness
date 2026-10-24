@@ -58,7 +58,8 @@ func _physics_process(_delta: float) -> void:
 	if actor.is_in_bush():
 		_rustle_acc += moved
 		var now := GameClock.now()
-		if _rustle_acc >= GameParams.gu(p.rustle_stride) and now - _last_rustle >= p.rustle_cadence_min:
+		var interval: float = maxf(p.rustle_cadence_min, {&"careful": p.rustle_interval_careful, &"sprint": p.rustle_interval_sprint}.get(mode, p.rustle_interval_walk))
+		if _rustle_acc >= GameParams.gu(p.rustle_stride) and now - _last_rustle >= interval:
 			_rustle_acc = 0.0
 			_last_rustle = now
 			rustles_emitted += 1

@@ -63,6 +63,6 @@ func _run() -> void:
 	await physics_frame
 	# BUSH-01/02: detection distance for a stationary survivor in a bush; careful movement noise.
 	var p := GameParams.current()
-	print("BUSH-01 baseline: concealed target detected within %.1f gu after %.1f s regardless of movement; open ground %.1f gu" % [p.bush_detect_distance, p.bush_detect_time, p.vision_range()])
+	print("BUSH-01 baseline: concealed target detected within %.1f gu after %.1f s regardless of movement; open ground %.1f gu" % [2.0, 0.6, p.vision_range()])
 	print("BUSH-02 baseline: bush.gd emits foliage only for walk/sprint; careful movement is silent; one radius %.1f gu" % p.foliage_radius)
 	quit()

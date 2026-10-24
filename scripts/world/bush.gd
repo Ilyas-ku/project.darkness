@@ -14,15 +14,23 @@ func _ready() -> void:
 	collision_layer = GameParams.L_BUSH
 	collision_mask = GameParams.L_SURVIVOR | GameParams.L_KILLER
 	monitorable = false
-	z_index = 7
 	var cs := CollisionShape2D.new()
 	var c := CircleShape2D.new()
 	c.radius = GameParams.gu(radius_gu)
 	cs.shape = c
 	add_child(cs)
-	_sprite = Art.sprite(self, "sprites/bush_%s.png" % ["a", "b"][Art.variant(global_position, 2)], 0,
-		Vector2.ONE * GameParams.gu(radius_gu) * 2.15)
-	_sprite.rotation = float(Art.variant(global_position, 628)) * 0.01
+	var tex := "sprites/bush_%s.png" % ["a", "b"][Art.variant(global_position, 2)]
+	var size := Vector2.ONE * GameParams.gu(radius_gu) * 2.0   # drawing == cover zone == collider
+	# base layer under the characters, dense top foliage over them
+	var base := Art.sprite(self, tex, 0, size)
+	base.z_as_relative = false
+	base.z_index = 3
+	base.modulate = Color(0.55, 0.62, 0.55)
+	base.rotation = float(Art.variant(global_position, 628)) * 0.01
+	_sprite = Art.sprite(self, tex, 0, size * 0.96)
+	_sprite.z_as_relative = false
+	_sprite.z_index = 8
+	_sprite.rotation = base.rotation + 0.7
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 
@@ -46,13 +54,17 @@ func shake(mode: StringName) -> void:
 	_rustle = {&"careful": 0.25, &"walk": 0.4, &"sprint": 0.55}.get(mode, 0.4)
 
 
+## The top foliage thins out over the player's own character and over a character
+## the player actually sees, so leaves never hide what the logic says is visible.
+var reveal := false
+
+
 func _physics_process(delta: float) -> void:
 	var occupied := false
 	for b in get_overlapping_bodies():
 		if b.is_in_group(&"survivor"):
 			occupied = true
-	# The survivor inside sees through the leaves; others see a dense bush.
-	_sprite.modulate.a = 0.55 if occupied else 1.0
+	_sprite.modulate.a = 0.5 if occupied or reveal else 0.92
 	if _rustle > 0.0:
 		_rustle -= delta
 		_sprite.rotation += sin(_rustle * 40.0) * 0.004

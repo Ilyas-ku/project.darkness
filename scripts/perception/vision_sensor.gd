@@ -51,6 +51,18 @@ func effective_range_px() -> float:
 	return GameParams.gu(base_range_gu) * m
 
 
+## Detection range multiplier for a target inside dense foliage, by its movement.
+static func bush_visibility(mode: StringName, p: GameParams) -> float:
+	match mode:
+		&"careful":
+			return p.bush_visibility_careful
+		&"walk":
+			return p.bush_visibility_walk
+		&"sprint":
+			return p.bush_visibility_sprint
+	return p.bush_visibility_stationary
+
+
 static func is_in_sector(origin: Vector2, facing: Vector2, fov: float, range_px: float, point: Vector2) -> bool:
 	var to := point - origin
 	var d := to.length()
@@ -102,7 +114,8 @@ func check_target(target: Node, dt: float) -> bool:
 		return false
 	if target.has_method(&"is_concealed") and target.is_concealed():
 		var p := GameParams.current()
-		if get_eye_position().distance_to(pts[0]) > GameParams.gu(p.bush_detect_distance):
+		var mode: StringName = target.get_movement_mode() if target.has_method(&"get_movement_mode") else &"idle"
+		if get_eye_position().distance_to(pts[0]) > effective_range_px() * bush_visibility(mode, p):
 			_bush_accum[id] = 0.0
 			return false
 		_bush_accum[id] = _bush_accum.get(id, 0.0) + dt

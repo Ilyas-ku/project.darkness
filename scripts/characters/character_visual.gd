@@ -23,6 +23,11 @@ func _ready() -> void:
 	add_child(_sprite)
 
 
+## Faint outline of the player's own character above foliage (screen-only aid).
+var self_outline := false
+var _outline: Node2D
+
+
 func flash_hurt() -> void:
 	_hurt = 0.35
 
@@ -50,3 +55,20 @@ func _process(delta: float) -> void:
 		_sprite.modulate = Color(1, 0.55, 0.55) if _hurt > 0.0 else Color.WHITE
 	_hurt = maxf(0.0, _hurt - delta)
 	_sprite.rotation = f.angle()
+	if self_outline:
+		var show: bool = owner_node.has_method(&"is_in_bush") and owner_node.is_in_bush()
+		if _outline == null:
+			_outline = _Outline.new()
+			_outline.z_as_relative = false
+			_outline.z_index = 9
+			add_child(_outline)
+		_outline.visible = show
+
+
+class _Outline extends Node2D:
+	func _process(_delta: float) -> void:
+		queue_redraw()
+
+	func _draw() -> void:
+		var a := 0.45 + 0.15 * sin(Time.get_ticks_msec() * 0.006)
+		draw_arc(Vector2.ZERO, GameParams.gu(0.36), 0, TAU, 28, Color(0.75, 0.9, 1.0, a), 1.5)

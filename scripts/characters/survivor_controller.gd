@@ -52,6 +52,7 @@ func _ready() -> void:
 	add_child(_shape)
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	visual.radius_gu = params.survivor_radius
+	visual.self_outline = true
 	_restore_vision()
 	var map_px := params.map_size_px()
 	# one unit of the surrounding tree line stays in frame at the map edge
