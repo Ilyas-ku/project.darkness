@@ -18,6 +18,7 @@ func before_each() -> void:
 	tree.change_scene_to_file(MAIN)
 	await physics_frames(3)
 	s = tree.current_scene
+	await wait_navigation(s.nav_region)
 	heard.clear()
 	voices.clear()
 	s.survivor.hearing.heard.connect(func(o): heard.append(o))
@@ -128,7 +129,9 @@ func test_t05_range_and_door() -> void:
 	# far away: out of range, nothing heard, reason recorded
 	heard.clear()
 	s.killer.global_position = g(25, 22)
-	await _walk(g(27, 22), 1.0)
+	var before: int = s.killer.get_node("FootstepEmitter").steps_emitted
+	await _walk(g(27.5, 22), 1.5)
+	check(s.killer.get_node("FootstepEmitter").steps_emitted > before, "far killer really stepped")
 	check_eq(_steps().size(), 0, "T05: out of range -> nothing")
 	check(String(sv.hearing.last_footsteps_diag.get("reason", "")).begins_with("out of range"), "T05: fade reason recorded")
 
