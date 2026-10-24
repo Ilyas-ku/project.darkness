@@ -22,7 +22,8 @@ var _last_rustle := -INF
 
 
 func _ready() -> void:
-	rng.seed = get_parent().get_instance_id()
+	# deterministic per actor (instance ids change between runs)
+	rng.seed = hash(String(get_parent().name)) + GameParams.current().rng_seed
 	# random initial phase: two actors starting together do not step in unison
 	_acc = rng.randf() * GameParams.gu(GameParams.current().stride_walk)
 
