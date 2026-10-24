@@ -57,7 +57,8 @@ func set_peeking(v: bool) -> void:
 
 
 ## Killer opens the locker. Returns true if someone was inside (now revealed).
-func killer_open(_killer: Node) -> bool:
+func killer_open(killer: Node) -> bool:
+	SoundEventBus.emit(&"locker", global_position, 3.0, killer.get_instance_id())
 	if occupant == null:
 		return false
 	var o := occupant
@@ -90,6 +91,11 @@ func get_interact_hint(actor: Node) -> String:
 	return "E — спрятаться в шкаф"
 
 
+## The door of the locker creaks when someone starts getting in or out.
+func on_channel_started(actor: Node) -> void:
+	SoundEventBus.emit(&"locker", global_position, 3.0, actor.get_instance_id())
+
+
 func interact(actor: Node) -> void:
 	if occupant == null:
 		occupant = actor
@@ -99,6 +105,7 @@ func interact(actor: Node) -> void:
 		occupant = null
 		state = State.EMPTY
 		actor.exit_locker()
+	SoundEventBus.emit(&"locker_close", global_position, 2.5, actor.get_instance_id())
 	queue_redraw()
 
 

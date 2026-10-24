@@ -63,6 +63,8 @@ func ingest_heard(h: Observation.HeardObservation, now: float) -> bool:
 		footsteps_heard_time = now
 	if not h.is_localizable():
 		return true
+	if h.kind == &"throw":
+		return false   # a throw whoosh is the thrower's own sound; the impact is the lure
 	_recent_sounds = _recent_sounds.filter(func(r): return now - r.time < sound_recheck_cooldown)
 	for r in _recent_sounds:
 		if r.kind == h.kind and r.center.distance_to(h.region_center()) <= same_area_radius_px:

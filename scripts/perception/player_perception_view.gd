@@ -48,6 +48,11 @@ func _physics_process(delta: float) -> void:
 		# In developer mode the killer is drawn above the fog.
 		k.visual.z_index = 60 if debug_reveal and not seen else 0
 
+	for n in get_tree().get_nodes_in_group(&"npc_perceivable"):
+		var vis := n.get_node_or_null(^"Visual")
+		if vis != null:
+			vis.visible = sv.count_visible_points(n.get_perception_points()) > 0 or debug_reveal
+
 	for s in get_tree().get_nodes_in_group(&"dynamic_object"):
 		var pts: PackedVector2Array = s.get_perception_points()
 		if pts.is_empty():

@@ -80,6 +80,7 @@ func throw_from(origin: Vector2, target: Vector2, thrower_id: int) -> void:
 	_travel_left = minf(to.length(), GameParams.gu(p.stone_max_range))
 	_thrower_id = thrower_id
 	state = State.FLYING
+	SoundEventBus.emit(&"throw", origin, 1.5, thrower_id)
 	throws += 1
 	visible = true
 

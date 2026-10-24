@@ -11,6 +11,8 @@ const TITLES := {
 	&"TEST_STEPS_CLOSET": "Игрок в шкафу, маньяк ходит по спальне и останавливается",
 	&"TEST_STEPS_WALL": "DEBUG: Hearing Test — маньяк ходит за стеной",
 	&"TEST_SOUND_OCCLUSION": "Шаги за входной дверью: дверь то открыта, то закрыта",
+	&"TEST_STEPS_TWO_RUNNERS": "Два служебных бегуна за спиной: бег и шаг, один останавливается",
+	&"TEST_SOUND_EVENTS": "Последовательность звуков: дверь, шкаф, окно, камень, бутылка, удар, выход",
 	&"TEST_DOOR_SPRINT": "Бег сквозь входную дверь: E на бегу",
 	&"TEST_CHASE_BREAK_LOS": "Погоня у группы деревьев: разорвите контакт",
 	&"TEST_BUSH_STATIC": "Жертва неподвижно в кусте, маньяк ходит мимо",
@@ -39,6 +41,10 @@ static func instruction() -> String:
 			return "Вы в закрытом шкафу. Маньяк проходит по спальне, стоит 2 с у шкафа и уходит. Слушайте шаги (приглушённо) и смотрите на пятна."
 		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			return "Стойте в спальне. Маньяк ходит снаружи за северной стеной, останавливается и уходит."
+		&"TEST_STEPS_TWO_RUNNERS":
+			return "Стойте, смотрите на юг. За спиной один бегун бежит, второй идёт; через 8 с идущий останавливается. Слышны два наложенных ритма, потом один."
+		&"TEST_SOUND_EVENTS":
+			return "Стойте в гостиной. Каждые 1.5 с звучит событие: дверь откр./закр., шкаф, окно, камень, бутылка, удар, задвижка выхода."
 		&"TEST_DOOR_SPRINT":
 			return "Бегите (Shift) к закрытой двери дома и нажмите E на бегу: дверь откроется за 0.2 с, вы не остановитесь. Повторное нажатие закроет."
 		&"TEST_CHASE_BREAK_LOS":
@@ -91,6 +97,17 @@ static func apply(s: GameSession) -> bool:
 		&"TEST_STEPS_WALL", &"TEST_FOOTSTEPS":
 			sv.global_position = g(5.0, 3.2)
 			_drive(s, g(2.0, 1.0), [[Vector2(9.5, 1.0), 2.0], [Vector2(17.0, 1.0), 2.0], [Vector2(2.0, 1.0), 2.0]])
+		&"TEST_STEPS_TWO_RUNNERS":
+			sv.global_position = g(15.0, 13.0)
+			s.prepare_left = 600.0
+			spawn_runner(s, &"sprint", [g(13.4, 9.8), g(18.4, 9.8)], -1.0, g(13.4, 9.8))
+			spawn_runner(s, &"walk", [g(17.6, 11.0), g(13.6, 11.0)], 8.0, g(17.6, 11.0))
+		&"TEST_SOUND_EVENTS":
+			sv.global_position = g(5.4, 4.6)
+			s.prepare_left = 600.0
+			var ev := SoundEventsDriver.new()
+			ev.session = s
+			s.add_child(ev)
 		&"TEST_DOOR_SPRINT":
 			sv.global_position = g(9.2, 12.0)
 			s.prepare_left = 600.0
@@ -114,6 +131,58 @@ static func apply(s: GameSession) -> bool:
 	s.set_debug(true)
 	print("[preset] %s applied (seed 42)" % active)
 	return true
+
+
+## Debug-only scripted runner (independent footstep source, no combat AI).
+static func spawn_runner(s: GameSession, gait: StringName, points: Array, stop_after: float, at: Vector2) -> TestRunner:
+	var r: TestRunner = load("res://scenes/debug/test_runner.tscn").instantiate()
+	r.name = "Runner_%s" % gait
+	r.gait = gait
+	for p in points:
+		r.waypoints.append(p)
+	r.stop_after = stop_after
+	r.position = at
+	s.actors.add_child(r)
+	return r
+
+
+## Plays the situational events one after another near the survivor.
+class SoundEventsDriver extends Node:
+	var session: Node
+	var _t := 0.0
+	var _i := 0
+
+	func _physics_process(delta: float) -> void:
+		_t += delta
+		if _t < 1.5:
+			return
+		_t = 0.0
+		var cabin: Node = session.get_tree().get_first_node_in_group(&"cabin")
+		var g := GameParams.PX_PER_GU
+		var names := ["door open", "door close", "locker", "window", "stone", "bottle", "hit", "exit latch"]
+		print("[preset] sound event: %s" % names[_i % names.size()])
+		match _i % names.size():
+			0:
+				cabin.get_node("InnerDoor").set_open(true, null)
+			1:
+				cabin.get_node("InnerDoor").set_open(false, null)
+			2:
+				SoundEventBus.emit(&"locker", cabin.get_node("Locker").global_position, 3.0, 0)
+			3:
+				cabin.get_node("Window").on_vaulted(self)
+			4:
+				var st: Node2D = session.get_tree().get_nodes_in_group(&"stone")[0]
+				st.state = Throwable.State.HELD
+				st.throw_from(Vector2(5.9, 5.3) * g, Vector2(5.9, 8.0) * g, 0)
+			5:
+				SoundEventBus.emit(&"glass", Vector2(8.6, 6.4) * g, 11.0, 0)
+			6:
+				if session.survivor.health.can_be_hit():
+					session.survivor.health.take_hit(self)
+			7:
+				# the latch is normally the survivor's own action at the gate
+				SoundEventBus.emit(&"gate", session.exit_gate.global_position, 2.0, session.survivor.get_instance_id())
+		_i += 1
 
 
 ## Spawns the killer with its brain off and drives it along a looping path.

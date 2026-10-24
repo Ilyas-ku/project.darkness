@@ -406,6 +406,7 @@ func _tick_chase(now: float) -> void:
 	motor.move_to(target)
 	if dist <= GameParams.gu(params.attack_start_range) and now >= _attack_ready_time:
 		combat_stats.attacks_started += 1
+		SoundEventBus.emit(&"swing", motor.global_position, 4.0, motor.get_instance_id())
 		_attack_phase = &"windup"
 		_attack_left = params.attack_windup
 		_attack_last_reason = ""

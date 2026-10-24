@@ -53,6 +53,8 @@ func test_t01_t02_closet_hears_real_steps_and_stays_hidden() -> void:
 	await physics_frames(2)
 	_killer_at(g(7.5, 5.2))
 	await _walk(g(4.0, 4.6), 1.6)
+	await _walk(g(6.0, 5.0), 0.8)
+	await _walk(g(4.3, 4.3), 0.8)
 	var steps := _steps()
 	check(steps.size() >= 2, "T01: steps of the killer walking past the closet are heard (%d)" % steps.size())
 	check(steps.all(func(o): return o.muffled), "T01: heard muffled from inside the closet")

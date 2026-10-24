@@ -41,12 +41,12 @@
         30.5s CHASE -> ATTACK: victim in attack range (0.85 gu)
         30.9s attack hit
         30.9s ATTACK -> CHASE: attack hit, recovery
-08 house: door, hide in the locker -> ESCAPED at 12.6s | no sight for 10 s, killer state LOCAL_SEARCH, hits [], LOS breaks 1
-         1.3s entered house
-         2.6s CHASE -> ATTACK: victim in attack range (1.03 gu)
+08 house: door, hide in the locker -> ESCAPED at 12.6s | no sight for 10 s, killer state SWEEP_INTERIOR, hits [], LOS breaks 1
          3.1s ATTACK -> GO_TO_LAST_SEEN: attack whiff: no_target_in_reach, LOS lost
-         3.1s GO_TO_LAST_SEEN -> LOCAL_SEARCH: reached last seen position
-         6.6s entered house
+         3.1s GO_TO_LAST_SEEN -> INVESTIGATE_SOUND: heard locker_close
+         7.3s INVESTIGATE_SOUND -> RETURN_TO_PATROL: no evidence at sound area
+         7.3s RETURN_TO_PATROL -> PATROL: pick next area
+         7.3s PATROL -> TRAVEL_TO_POI: least recently visited (clearing)
 09 window first: vault out, sprint to the west woods, sneak -> CAUGHT at 13.4s | hits ["WOUNDED@0.0s", "DOWNED@0.0s"], LOS breaks 9, combat { "attacks_started": 2, "attacks_hit": 2, "attacks_whiffed": 0, "whiff_reasons": {  }, "finishes": 0, "finish_interrupted": 0 }
         12.1s attack hit
         12.1s ATTACK -> CHASE: attack hit, recovery

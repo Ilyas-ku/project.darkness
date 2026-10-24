@@ -47,7 +47,10 @@ var voices_started := 0
 var _rng := RandomNumberGenerator.new()
 var _ambience: AudioStreamPlayer
 var _radio_players := {}
-var _step_voices: Array[AudioStreamPlayer2D] = []
+## Recent step voices as {voice, t}; a voice counts against the limit for VOICE_LIFE s
+## (robust even when a driver never reports "finished").
+var _step_voices: Array = []
+const VOICE_LIFE := 0.6
 
 
 static func ensure_buses() -> void:
@@ -130,7 +133,8 @@ func _process(_delta: float) -> void:
 			p.play()
 		elif not r.is_on and p.playing:
 			p.stop()
-	_step_voices = _step_voices.filter(func(v): return is_instance_valid(v) and v.playing)
+	var now := GameClock.now()
+	_step_voices = _step_voices.filter(func(e): return is_instance_valid(e.voice) and now - e.t < VOICE_LIFE)
 
 
 func _stream(key: StringName) -> AudioStream:
@@ -173,6 +177,12 @@ func _voice(key: StringName, pos: Vector2, db: float, bus: String, pitch_jitter 
 	p.global_position = pos
 	add_child(p)
 	p.finished.connect(p.queue_free)
+	# safety net: free the node even if the driver never reports "finished"
+	var wr: WeakRef = weakref(p)
+	get_tree().create_timer(4.0, false).timeout.connect(func():
+		var n: Node = wr.get_ref()
+		if n != null:
+			n.queue_free())
 	p.play()
 	voices_started += 1
 	voice_played.emit(key, pos, p.bus)
@@ -217,7 +227,7 @@ func _on_heard(obs: Observation.HeardObservation) -> void:
 		entry.audio_play_called = true
 		entry.voice_active = v != null and v.playing
 	if v != null and is_step:
-		_step_voices.append(v)
+		_step_voices.append({"voice": v, "t": GameClock.now()})
 
 
 func _on_survivor_health(_old: int, new_state: int) -> void:
